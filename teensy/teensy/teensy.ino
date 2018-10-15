@@ -1,5 +1,4 @@
 #include <EEPROM.h>
-#include "DynamixelMotor.h"
 
 int pose = 0;
 int pid[3][3];
@@ -10,19 +9,9 @@ int cycleFrequency;
 int cycleTime;
 unsigned long timer = 0;
 
-const int servoBaud = 115200;
 
-HardwareDynamixelInterface interface(Serial1);
-DynamixelMotor joint1(interface, 1);
-DynamixelMotor joint2(interface, 2);
-DynamixelMotor joint3(interface, 3);
-DynamixelMotor gripL(interface, 4);
-DynamixelMotor gripR(interface, 5);
-
-DynamixelMotor* servoPtrArray[5];
-
-
-void setup() {
+void setup()
+{
     Serial.begin(115200);
     Serial.setTimeout(100);
 
@@ -39,24 +28,6 @@ void setup() {
     EEPROM.get(100,cycleFrequency);
     cycleTime = 1000000/cycleFrequency; //in microsec
 
-    servoPtrArray[0]=&joint1;
-    servoPtrArray[1]=&joint2;
-    servoPtrArray[2]=&joint3;
-    servoPtrArray[3]=&gripL;
-    servoPtrArray[4]=&gripR;
-    
-    interface.begin(servoBaud);
-    delay(100);
-    for(int i=0;i<5;i++)
-    {
-        if(int errno = servoPtrArray[i]->init() != DYN_STATUS_OK)
-        {
-            Serial.print("ERROR: Can't connect to servo id ");
-            Serial.print(i);
-            Serial.print(", error code: ");
-            Serial.println(errno);
-        }
-    }
 }
 
 void updatePIDvalue(int joint, char letter, int value)

@@ -373,12 +373,10 @@ bool doPing(uint8_t id, size_t timeout = 100)
   return package_received;
 }
 
-// Set the goal position of a servo
-// Reads the position of a servo, if no response is read, the function does not
-// modify the value of the position variable.
+// Read the position of a servo
 //
-// @param id the servo ID to get the position of.
-// @param position a reference to store the read position in.
+// @param id       the servo ID to set the position of.
+// @param position the position to go to.
 // @return true if the servo responded.
 bool readPosition(uint8_t id, int32_t& position)
 {
@@ -394,10 +392,12 @@ bool readPosition(uint8_t id, int32_t& position)
   }
 }
 
-// Read the position of a servo
+// Set the goal position of a servo
+// Reads the position of a servo, if no response is read, the function does not
+// modify the value of the position variable.
 //
-// @param id       the servo ID to set the position of.
-// @param position the position to go to.
+// @param id the servo ID to get the position of.
+// @param position a reference to store the read position in.
 // @return true if the servo responded.
 bool setGoalPosition(uint8_t id, int32_t position)
 {
@@ -435,6 +435,35 @@ bool torqueEnable(uint8_t id, bool enable)
     return false;
   }
 }
+
+//0 = current (torque)
+//3 = position
+bool setOperatingMode(uint8_t id, uint8_t mode)
+{
+    sendWriteInstruction(id, 11, mode);
+    if(receivePackage(100))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool setGoalCurrent(uint8_t id, uint16_t data)
+{
+    sendWriteInstruction(id, 102, data);
+    if(receivePackage(100))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 
 void updatePIDvalue(int joint, char letter, int value)
 {
@@ -486,6 +515,7 @@ int pidCalculate(int joint, int desired, int actual)
     return ((pid[joint][0]*error) + (pid[joint][1]*integral[joint]) + (pid[joint][2]*derivative));
 }
 
+
 void setup()
 {
     Serial.begin(115200);
@@ -503,6 +533,15 @@ void setup()
 
     EEPROM.get(100,cycleFrequency);
     cycleTime = 1000000/cycleFrequency; //in microsec
+
+    for (int i=0;i<5;i++)
+    {
+        if(!doPing(i, 100))
+        {
+            Serial.print("ERROR: No response from servo #");
+            Serial.println(i);
+        }
+    }
 }
 
 void loop() {
@@ -513,7 +552,7 @@ void loop() {
             case 'a':
                 pose = Serial.parseInt();
                 break;
-            case 'j':
+            case 'j': //TODO test serial read
                 {
                 int joint = Serial.parseInt();
                 char pid = Serial.read();

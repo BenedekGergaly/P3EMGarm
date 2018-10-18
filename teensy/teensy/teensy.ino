@@ -21,6 +21,8 @@
  * SOFTWARE.
  */
 
+//CORRECT WIRE COLORS: black, green, yellow, blue, red to 3.3v
+
 #include <EEPROM.h>
 #include <Arduino.h>
 
@@ -344,6 +346,19 @@ void sendWriteInstruction(uint8_t id, uint16_t address, int32_t data)
   transmitPackage();
 }
 
+//2 byte packet
+void sendWriteInstruction(uint8_t id, uint16_t address, int16_t data)
+{
+  setHdrAndID(id);
+  putUint16t(7, tx_buffer, DXL_LENGTH_POS);
+  putUint8t(0x03, tx_buffer, DXL_INSTRUCTION_POS);
+  putUint16t(address, tx_buffer, 8);
+  putUint16t(data, tx_buffer, 10);
+  addCrc(tx_buffer, 12);
+
+  transmitPackage(); 
+}
+
 
 // Ping a servo
 // Pings the servo and waits for a response. If none is received within the
@@ -451,7 +466,7 @@ bool setOperatingMode(uint8_t id, uint8_t mode)
     }
 }
 
-bool setGoalCurrent(uint8_t id, int32_t data)
+bool setGoalCurrent(uint8_t id, int16_t data)
 {
     sendWriteInstruction(id, 102, data);
     if(receivePackage(100))
@@ -539,7 +554,7 @@ void setup()
 
     for (int i=0;i<5;i++)
     {
-        if(!doPing(i+1, 100))
+        if(!doPing(i+1, 1000))
         {
             Serial.print("ERROR: No response from servo #");
             Serial.println(i+1);
@@ -553,10 +568,10 @@ void loop() {
     {
         switch (Serial.read())
         {
-            case 'a':
+            case 'a': //pose input
                 pose = Serial.parseInt();
                 break;
-            case 'j': //TODO test serial read
+            case 'j': //update pid value j2p123
                 {
                 int joint = Serial.parseInt();
                 char pid = Serial.read();
@@ -564,15 +579,15 @@ void loop() {
                 updatePIDvalue(joint-1, pid, value);
                 break;
                 }
-            case 'r':
+            case 'r': //retrieve pid values
                 printPIDvalues();
                 break;
-            case 'f':
+            case 'f': //change frequency
                 cycleFrequency = Serial.parseInt();
                 EEPROM.put(100,cycleFrequency);
                 cycleTime = 1000000/cycleFrequency;
                 break;
-            case 't':
+            case 't': //torque enable/disable t3,1  joint3 enable
                 {
                 int id = Serial.parseInt();
                 Serial.read();
@@ -580,8 +595,52 @@ void loop() {
                 torqueEnable(id, enable);
                 break;
                 }
-            case 'x':
+            case 'x': //"reset"
                 setup();
+                break;
+            case 'p': //read position
+                {
+                int id = Serial.parseInt();
+                int32_t position;
+                readPosition(id, position);
+                Serial.print("Position of servo #");
+                Serial.print(id);
+                Serial.print(" : ");
+                Serial.println(position);
+                break;
+                }
+            case 'c': //set goal current
+                {
+                int id = Serial.parseInt();
+                Serial.read();
+                int current = Serial.parseInt();
+                Serial.println(setGoalCurrent(id, current));
+                Serial.println(current);
+                break;
+                }
+            case 'o': //set operating mode 0=current, 3=position
+                {
+                int id = Serial.parseInt();
+                Serial.read();
+                int mode = Serial.parseInt();
+                setOperatingMode(id, mode);
+                break;
+                }
+            case 'g': //goal position
+                {
+                    int id = Serial.parseInt();
+                    Serial.read();
+                    int32_t pos = Serial.parseInt();
+                    setGoalPosition(id, pos);
+                    break;
+                }
+            case 'n': //RX dump
+                Serial.print("RX dump: ");
+                dumpPackage(rx_buffer);
+                break;
+            case 'm': //TX dump
+                Serial.print("TX dump: ");
+                dumpPackage(tx_buffer);
                 break;
             case ',':
                 Serial.read();

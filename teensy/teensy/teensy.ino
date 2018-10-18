@@ -451,7 +451,7 @@ bool setOperatingMode(uint8_t id, uint8_t mode)
     }
 }
 
-bool setGoalCurrent(uint8_t id, uint16_t data)
+bool setGoalCurrent(uint8_t id, int32_t data)
 {
     sendWriteInstruction(id, 102, data);
     if(receivePackage(100))
@@ -480,6 +480,7 @@ void updatePIDvalue(int joint, char letter, int value)
             j=2;
             break;
         default:
+            Serial.println("ERROR: Invalid parameters");
             return;
     }
     pid[joint][j] = value;
@@ -492,7 +493,7 @@ void printPIDvalues()
     for(int i=0;i<=2;i++)
     {        
         Serial.print("Joint ");
-        Serial.print(i);
+        Serial.print(i+1);
         Serial.print(": ");
         Serial.print(pid[i][0]);
         Serial.print(", ");
@@ -515,11 +516,13 @@ int pidCalculate(int joint, int desired, int actual)
     return ((pid[joint][0]*error) + (pid[joint][1]*integral[joint]) + (pid[joint][2]*derivative));
 }
 
-
 void setup()
 {
     Serial.begin(115200);
     Serial.setTimeout(100);
+
+    Serial1.begin(115200);
+    Serial1.transmitterEnable(2);
 
     int eeaddress = 0;
     for (int i=0;i<=2;i++)
@@ -536,12 +539,13 @@ void setup()
 
     for (int i=0;i<5;i++)
     {
-        if(!doPing(i, 100))
+        if(!doPing(i+1, 100))
         {
             Serial.print("ERROR: No response from servo #");
-            Serial.println(i);
+            Serial.println(i+1);
         }
     }
+    dumpPackage(tx_buffer);
 }
 
 void loop() {
@@ -557,7 +561,7 @@ void loop() {
                 int joint = Serial.parseInt();
                 char pid = Serial.read();
                 int value = Serial.parseInt();
-                updatePIDvalue(joint, pid, value);
+                updatePIDvalue(joint-1, pid, value);
                 break;
                 }
             case 'r':
@@ -566,6 +570,22 @@ void loop() {
             case 'f':
                 cycleFrequency = Serial.parseInt();
                 EEPROM.put(100,cycleFrequency);
+                cycleTime = 1000000/cycleFrequency;
+                break;
+            case 't':
+                {
+                int id = Serial.parseInt();
+                Serial.read();
+                bool enable = Serial.parseInt();
+                torqueEnable(id, enable);
+                break;
+                }
+            case 'x':
+                setup();
+                break;
+            case ',':
+                Serial.read();
+                break;
             default:
                 Serial.find(',');
                 Serial.println("ERROR: Unknown command");
@@ -576,10 +596,11 @@ void loop() {
     if(micros()-timer > cycleTime)
     {
         float rateError = micros()-timer-cycleTime;
+        unsigned int actualFrequency = 1000000/(micros()-timer);
         if(rateError > cycleTime * 0.1)
         {
-            Serial.print("WARNING: Missed target rate by ");
-            Serial.print(1000000/rateError);
+            Serial.print("WARNING: Missed target rate, actual frequency: ");
+            Serial.print(actualFrequency);
             Serial.println(" Hz");
         }
         timer = micros();

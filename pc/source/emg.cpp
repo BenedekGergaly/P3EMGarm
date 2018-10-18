@@ -87,11 +87,9 @@ int main(int argc, char** argv)
 	char serialOutput[64];
 	char serialInput[64];
 	std::string temp = "\\\\.\\" + port;
-	const char* temp2 = temp.c_str();
-	char* portName = (char*)temp2;
+	char* portName = (char*)temp.c_str();
 
 	SerialPort teensy(portName);
-
 
     myo::Hub hub("com.example.emg-data-sample");
 

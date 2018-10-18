@@ -25,6 +25,7 @@
 
 #include <EEPROM.h>
 #include <Arduino.h>
+#include "servo.h"
 
 int pose = 0;
 int pid[3][3];
@@ -37,15 +38,9 @@ unsigned long timer = 0;
 
 #define TX_BUFFER_LEN 30
 #define RX_BUFFER_LEN 30
-uint8_t tx_buffer[TX_BUFFER_LEN];
-uint8_t rx_buffer[RX_BUFFER_LEN];
 
 
-// Low-level functions for setting individual bytes in the buffers.
-void putInt8t(int8_t value, uint8_t* buffer, size_t pos)
-{
-  buffer[pos] = value;
-}
+
 
 int8_t getInt8t(uint8_t* buffer, size_t pos)
 {
@@ -560,7 +555,6 @@ void setup()
             Serial.println(i+1);
         }
     }
-    dumpPackage(tx_buffer);
 }
 
 void loop() {

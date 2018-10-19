@@ -428,3 +428,16 @@ bool servo::setGoalCurrent(uint8_t id, int16_t data)
         return false;
     }
 }
+
+bool servo::setGoalPwm(uint8_t id, int16_t data)
+{
+    sendWriteInstruction(id, 100, data);
+    if(receivePackage(100))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}

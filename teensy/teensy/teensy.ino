@@ -89,6 +89,34 @@ int pidCalculate(int joint, int desired, int actual)
     return ((pid[joint][0]*error) + (pid[joint][1]*integral[joint]) + (pid[joint][2]*derivative));
 }
 
+void gripper(bool b)
+{
+    if(b == 0)
+    {
+
+        dxl.torqueEnable(4,0);
+        dxl.torqueEnable(5,0);
+        dxl.setOperatingMode(4,3);
+        dxl.setOperatingMode(5,3);
+        dxl.torqueEnable(4,1);
+        dxl.torqueEnable(5,1);
+        dxl.setGoalPosition(4,2600);
+        dxl.setGoalPosition(5,3200);
+
+    }
+    else
+    {
+        dxl.torqueEnable(4,0);
+        dxl.torqueEnable(5,0);
+        dxl.setOperatingMode(4,16);
+        dxl.setOperatingMode(5,16);
+        dxl.torqueEnable(4,1);
+        dxl.torqueEnable(5,1);
+        dxl.setGoalPwm(4, -300);
+        dxl.setGoalPwm(5, -300);
+    }
+}
+
 void setup()
 {    
     Serial.begin(115200);
@@ -118,6 +146,10 @@ void setup()
             Serial.println(i+1);
         }
     }
+    dxl.setOperatingMode(4, 16);
+    dxl.setOperatingMode(5, 16);
+    dxl.torqueEnable(4, 1);
+    dxl.torqueEnable(5, 1);
 }
 
 void loop() {
@@ -185,12 +217,23 @@ void loop() {
                 }
             case 'g': //goal position
                 {
-                    int id = Serial.parseInt();
-                    Serial.read();
-                    int32_t pos = Serial.parseInt();
-                    dxl.setGoalPosition(id, pos);
-                    break;
+                int id = Serial.parseInt();
+                Serial.read();
+                int32_t pos = Serial.parseInt();
+                dxl.setGoalPosition(id, pos);
+                break;
                 }
+            case 'w': //goal pwm
+                {
+                int id = Serial.parseInt();
+                Serial.read();
+                int data = Serial.parseInt();
+                dxl.setGoalPwm(id, data);
+                break;
+                }
+            case 'b': //grip 0=open 1=close
+                gripper(Serial.parseInt());
+                break;
             case 'n': //RX dump
                 Serial.print("RX dump: ");
                 dxl.dumpPackage(dxl.rx_buffer);

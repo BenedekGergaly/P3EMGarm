@@ -61,6 +61,7 @@ class servo
         bool torqueEnable(uint8_t id, bool enable);
         bool setOperatingMode(uint8_t id, uint8_t mode);
         bool setGoalCurrent(uint8_t id, int16_t data);
+        bool setGoalPwm(uint8_t id, int16_t data);
 
         uint8_t tx_buffer[TX_BUFFER_LEN];
         uint8_t rx_buffer[RX_BUFFER_LEN];

@@ -1,2 +1,5 @@
 pc/source/x64/
 pc/source/.vs/
+teensy/teensy/Debug/
+teensy/teensy/.vs/
+teensy/teensy/__vm/

@@ -26,3 +26,18 @@ array<double, 3> ArmControl::ComputeControlTorque(array<double, 3> thetaDesired,
 
 	return torque;
 }
+
+double ArmControl::ComputeOutputCurrent(double desiredTorque, ServoType servoType)
+{
+	switch (servoType)
+	{
+	case ServoType::MX28:
+		return desiredTorque * K_MX28;
+	case ServoType::MX64:
+		return desiredTorque * K_MX64;
+	case ServoType::MX106
+		return desiredTorque * K_MX128;
+	default:
+		return 0.0;
+	}
+}

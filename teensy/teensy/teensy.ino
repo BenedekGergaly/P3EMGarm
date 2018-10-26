@@ -23,9 +23,14 @@
 
 //CORRECT WIRE COLORS: black, green, yellow, blue, red to 3.3v
 
+#include <array>
 #include <EEPROM.h>
 #include <Arduino.h>
 #include "servo.h"
+#include "CrustCrawler\ArmKinematics.h"
+#include "CrustCrawler\ArmControl.h"
+
+using namespace std;
 
 int pose = 0;
 int pid[3][3];
@@ -35,8 +40,43 @@ int integral[3];
 int cycleFrequency;
 int cycleTime;
 unsigned long timer = 0;
+double x, y, z;
+bool runControlLoop = false;
 
 servo dxl = servo();
+ArmKinematics kinematics;
+ArmControl control;
+
+void applyTorquesForPosition(double x, double y, double z)
+{
+	auto point = Point3D<double>(x, y, z);
+	auto angles = kinematics.InverseKinematics(point).SolutionOne;
+	int32_t pos1, pos2, pos3, vel1, vel2, vel3;
+	dxl.readPosition(1, pos1);
+	dxl.readPosition(2, pos2);
+	dxl.readPosition(3, pos3);
+	pos1 = control.ConvertPositionSignal(pos1);
+	pos2 = control.ConvertPositionSignal(pos2);
+	pos3 = control.ConvertPositionSignal(pos3);
+	array<double, 3> feedbackPosition = { pos1, pos2, pos3 };
+	dxl.readVelocity(1, vel1);
+	dxl.readVelocity(2, vel2);
+	dxl.readVelocity(3, vel3);
+	vel1 = control.ConvertVelocitySignal(vel1);
+	vel2 = control.ConvertVelocitySignal(vel2);
+	vel3 = control.ConvertVelocitySignal(vel3);
+	array<double, 3> feedbackVelocity = { vel1, vel2, vel3 };
+	auto torques = control.ComputeControlTorque(angles, feedbackPosition, feedbackVelocity);
+	double current1 = control.ComputeOutputCurrent(torques[0], ServoType::MX106);
+	double current2 = control.ComputeOutputCurrent(torques[1], ServoType::MX106);
+	double current3 = control.ComputeOutputCurrent(torques[2], ServoType::MX64);
+	int16_t signal1 = control.ConvertCurrentToSignalValue(current1, false);
+	int16_t signal2 = control.ConvertCurrentToSignalValue(current2, false);
+	int16_t signal3 = control.ConvertCurrentToSignalValue(current3, false);
+	dxl.setGoalCurrent(1, signal1);
+	dxl.setGoalCurrent(2, signal2);
+	dxl.setGoalCurrent(3, signal3);
+}
 
 void updatePIDvalue(int joint, char letter, int value)
 {
@@ -242,6 +282,14 @@ void loop() {
                 Serial.print("TX dump: ");
                 dxl.dumpPackage(dxl.tx_buffer);
                 break;
+			case 'k': //Kinematic position
+				x = Serial.parseFloat();
+				Serial.read();
+				y = Serial.parseFloat();
+				Serial.read();
+				z = Serial.parseFloat();
+				runControlLoop = true;
+				break;
             case ',':
                 Serial.read();
                 break;
@@ -263,6 +311,10 @@ void loop() {
             Serial.println(" Hz");
         }
         timer = micros();
+		if (runControlLoop)
+		{
+			applyTorquesForPosition(x, y, z);
+		}
         pidCalculate(1,1,1);
     }
 }

@@ -9,11 +9,13 @@
 	#include "WProgram.h"
 #endif
 
+#include <array>
+
 class KinematicInverseAngles
 {
 public:
-	double SolutionOne[3];
-	double SolutionTwo[3];
+	std::array<double, 3> SolutionOne;
+	std::array<double, 3> SolutionTwo;
 };
 
 #endif

@@ -357,6 +357,25 @@ bool servo::readPosition(uint8_t id, int32_t& position)
   }
 }
 
+// Read the velocity of a servo
+//
+// @param id       the servo ID to get the velocity of.
+// @param the velocity.
+// @return true if the servo responded.
+bool servo::readVelocity(uint8_t id, int32_t& velocity)
+{
+	sendReadInstruction(id, 128, 4);
+	if (receivePackage(100))
+	{
+		velocity = getInt32t(rx_buffer, 9);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 // Set the goal position of a servo
 // Reads the position of a servo, if no response is read, the function does not
 // modify the value of the position variable.

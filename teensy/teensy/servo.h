@@ -57,6 +57,7 @@ class servo
         void sendWriteInstruction(uint8_t id, uint16_t address, int16_t data);
         bool doPing(uint8_t id, size_t timeout = 100);
         bool readPosition(uint8_t id, int32_t& position);
+		bool readVelocity(uint8_t id, int32_t& velocity);
         bool setGoalPosition(uint8_t id, int32_t position);
         bool torqueEnable(uint8_t id, bool enable);
         bool setOperatingMode(uint8_t id, uint8_t mode);

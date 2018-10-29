@@ -15,39 +15,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="teensy.ino" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="__vm\.teensy.vsarduino.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="servo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CrustCrawler\Models\Point3D.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CrustCrawler\ArmKinematics.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CrustCrawler\ArmControl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CrustCrawler\ArmDynamics.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CrustCrawler\Models\KinematicInverseAngles.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="servo.cpp">
+    <ClCompile Include="ConsoleTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CrustCrawler\Models\KinematicInverseAngles.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CrustCrawler\Models\Point3D.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CrustCrawler\ArmKinematics.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CrustCrawler\ArmControl.cpp">
@@ -56,8 +30,25 @@
     <ClCompile Include="CrustCrawler\ArmDynamics.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CrustCrawler\Models\KinematicInverseAngles.cpp">
+    <ClCompile Include="CrustCrawler\ArmKinematics.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CrustCrawler\Models\KinematicInverseAngles.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CrustCrawler\Models\Point3D.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CrustCrawler\ArmControl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CrustCrawler\ArmDynamics.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CrustCrawler\ArmKinematics.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

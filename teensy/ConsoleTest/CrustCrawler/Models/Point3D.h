@@ -3,6 +3,7 @@
 #ifndef _POINT3D_h
 #define _POINT3D_h
 
+
 #include "math.h"
 
 template <typename T>

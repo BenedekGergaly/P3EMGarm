@@ -119,8 +119,8 @@
     <ClInclude Include="CrustCrawler\ArmDynamics.h" />
     <ClInclude Include="CrustCrawler\ArmControl.h" />
     <ClInclude Include="CrustCrawler\ArmKinematics.h" />
-    <ClInclude Include="CrustCrawler\Models\Point3D.h" />
     <ClInclude Include="CrustCrawler\Models\KinematicInverseAngles.h" />
+    <ClInclude Include="CrustCrawler\Models\Point3D.h" />
     <ClInclude Include="servo.h" />
     <ClInclude Include="__vm\.teensy.vsarduino.h" />
   </ItemGroup>
@@ -128,8 +128,8 @@
     <ClCompile Include="CrustCrawler\ArmDynamics.cpp" />
     <ClCompile Include="CrustCrawler\ArmControl.cpp" />
     <ClCompile Include="CrustCrawler\ArmKinematics.cpp" />
-    <ClCompile Include="CrustCrawler\Models\Point3D.cpp" />
     <ClCompile Include="CrustCrawler\Models\KinematicInverseAngles.cpp" />
+    <ClCompile Include="CrustCrawler\Models\Point3D.cpp" />
     <ClCompile Include="servo.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

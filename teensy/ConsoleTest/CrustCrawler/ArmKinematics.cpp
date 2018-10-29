@@ -6,7 +6,7 @@ ArmKinematics::ArmKinematics()
 
 ArmKinematics::~ArmKinematics()
 {
-
+		
 }
 
 Point3D<double> ArmKinematics::ForwardKinematics(double theta1, double theta2, double theta3)
@@ -29,7 +29,7 @@ KinematicInverseAngles ArmKinematics::InverseKinematics(Point3D<double>& coordin
 	double len3 = 270;
 	double temp1 = pow(len1, 2) + pow(len2, 2) - pow(len3, 2);
 	double temp2 = 2.0 * len1 * len2;
-	double phi1 = acos(temp1 / temp2);
+	double phi1 = acos( temp1 / temp2);
 	double phi2 = atan2((double)t14Vector.getZ(), -t14Vector.getX());
 	double theta21 = (M_PI / 2.0) - phi1 - phi2;
 	double theta22 = (M_PI / 2.0) + phi1 - phi2;
@@ -62,10 +62,10 @@ double ** ArmKinematics::getT14Matrix(double theta1, Point3D<double>& coordinate
 {
 	//           ROW COL
 	double** matrix = new double*[4]{
-		new double[4]{ 0, 0, 0, 0 },
-		new double[4]{ 0, 0, 0, 0 },
-		new double[4]{ 0, 0, 0, 0 },
-		new double[4]{ 0, 0, 0, 0 }
+		new double[4] { 0, 0, 0, 0 },
+		new double[4] { 0, 0, 0, 0 },
+		new double[4] { 0, 0, 0, 0 },
+		new double[4] { 0, 0, 0, 0 }
 	};
 
 	matrix[0][0] = cos(theta1);

@@ -3,7 +3,6 @@
 #ifndef _ARMDYNAMICS_h
 #define _ARMDYNAMICS_h
 
-
 #include <cmath>
 #include <array>
 using namespace std;

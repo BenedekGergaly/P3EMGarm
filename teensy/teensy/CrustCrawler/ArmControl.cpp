@@ -46,22 +46,11 @@ double ArmControl::ComputeOutputCurrent(double desiredTorque, ServoType servoTyp
 	}
 }
 
-int16_t ArmControl::ConvertCurrentToSignalValue(double currentInAmps, bool clockwise)
+int16_t ArmControl::ConvertCurrentToSignalValue(double currentInAmps)
 {
 	double currentInMilliAmps = currentInAmps * 1000.0;
 	int16_t value = (int16_t)roundf(currentInMilliAmps / SUPPLIED_CURRENT_UNIT);
-	if (value > 1023)
-		value = 1023;
-	else if (value < 0)
-		value = 0;
-	if (clockwise)
-	{
-		return 1024 + value;
-	}
-	else
-	{
-		return value;
-	}
+	return value;
 }
 
 //Returns radians pr. sec

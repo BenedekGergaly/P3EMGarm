@@ -101,9 +101,9 @@ void applyTorquesForPosition(double x, double y, double z)
 	Serial.print(current2);
 	Serial.print(" ");
 	Serial.println(current3);
-	int16_t signal1 = control.ConvertCurrentToSignalValue(current1, true);
-	int16_t signal2 = control.ConvertCurrentToSignalValue(current2, true);
-	int16_t signal3 = control.ConvertCurrentToSignalValue(current3, true);
+	int16_t signal1 = control.ConvertCurrentToSignalValue(current1);
+	int16_t signal2 = control.ConvertCurrentToSignalValue(current2);
+	int16_t signal3 = control.ConvertCurrentToSignalValue(current3);
 	dxl.setGoalCurrent(1, signal1);
 	dxl.setGoalCurrent(2, signal2);
 	dxl.setGoalCurrent(3, signal3);

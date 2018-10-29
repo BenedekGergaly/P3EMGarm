@@ -27,7 +27,7 @@ public:
 		array<double, 3> dThetaFeedback);
 	array<double, 3> ComputeControlTorque(array<double, 3> thetaDesired, array<double, 3> thetaFeedback, array<double, 3> dThetaFeedback);
 	double ComputeOutputCurrent(double desiredTorque, ServoType servoType);
-	int16_t ConvertCurrentToSignalValue(double current, bool clockwise);
+	int16_t ConvertCurrentToSignalValue(double current);
 	double ConvertVelocitySignal(int16_t signal);
 	double ConvertPositionSignal(int16_t signal);
 

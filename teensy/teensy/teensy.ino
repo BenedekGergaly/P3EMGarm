@@ -49,57 +49,65 @@ ArmControl control;
 
 void applyTorquesForPosition(double x, double y, double z)
 {
+	unsigned long timerK, timerD, timerS, timerTemp;
+	Serial.print("XYZ: ");
+	Serial.print(x);
+	Serial.print(", ");
+	Serial.print(y);
+	Serial.print(", ");
+	Serial.println(z);
 	auto point = Point3D<double>(x, y, z);
-	auto angles = kinematics.InverseKinematics(point).SolutionTwo;
-	angles[1] = 0.0;
+	timerK = millis();
+	auto angles = kinematics.InverseKinematics(point).SolutionOne;
 	int32_t pos1, pos2, pos3, vel1, vel2, vel3;
-	dxl.readPosition(1, pos1);
-	dxl.readPosition(2, pos2);
+	double pos1d, pos2d, pos3d, vel1d, vel2d, vel3d;
+	dxl.readPosition(1, pos1),
+		dxl.readPosition(2, pos2);
 	dxl.readPosition(3, pos3);
-	pos1 = control.ConvertPositionSignal(pos1);
-	pos2 = control.ConvertPositionSignal(pos2);
-	pos3 = control.ConvertPositionSignal(pos3);
-	array<double, 3> feedbackPosition = { pos1, pos2, pos3 };
+	pos1d = control.ConvertPositionSignal(pos1);
+	pos2d = control.ConvertPositionSignal(pos2);
+	pos3d = control.ConvertPositionSignal(pos3);
+	array<double, 3> feedbackPosition = { pos1d, pos2d, pos3d };
 	dxl.readVelocity(1, vel1);
 	dxl.readVelocity(2, vel2);
 	dxl.readVelocity(3, vel3);
-	vel1 = control.ConvertVelocitySignal(vel1);
-	vel2 = control.ConvertVelocitySignal(vel2);
-	vel3 = control.ConvertVelocitySignal(vel3);
-	array<double, 3> feedbackVelocity = { vel1, vel2, vel3 };
-	Serial.print("Angles ");
+	vel1d = control.ConvertVelocitySignal(vel1);
+	vel2d = control.ConvertVelocitySignal(vel2);
+	vel3d = control.ConvertVelocitySignal(vel3);
+	array<double, 3> feedbackVelocity = { vel1d, vel2d, vel3d };
+	Serial.print("Angles: ");
 	Serial.print(angles[0]);
-	Serial.print(" ");
+	Serial.print(", ");
 	Serial.print(angles[1]);
-	Serial.print(" ");
+	Serial.print(", ");
 	Serial.println(angles[2]);
-	Serial.print("Feedback pos ");
+	Serial.print("Feedback pos: ");
 	Serial.print(feedbackPosition[0]);
-	Serial.print(" ");
+	Serial.print(", ");
 	Serial.print(feedbackPosition[1]);
-	Serial.print(" ");
+	Serial.print(", ");
 	Serial.println(feedbackPosition[2]);
-	Serial.print("Feedback vel ");
+	Serial.print("Feedback vel: ");
 	Serial.print(feedbackVelocity[0]);
-	Serial.print(" ");
+	Serial.print(", ");
 	Serial.print(feedbackVelocity[1]);
-	Serial.print(" ");
+	Serial.print(", ");
 	Serial.println(feedbackVelocity[2]);
 	array<double, 3> torques = control.ComputeControlTorque(angles, feedbackPosition, feedbackVelocity);
-	Serial.print("Torques ");
+	Serial.print("Torques: ");
 	Serial.print(torques[0]);
-	Serial.print(" ");
+	Serial.print(", ");
 	Serial.print(torques[1]);
-	Serial.print(" ");
+	Serial.print(", ");
 	Serial.println(torques[2]);
 	double current1 = control.ComputeOutputCurrent(torques[0], ServoType::MX106);
 	double current2 = control.ComputeOutputCurrent(torques[1], ServoType::MX106);
 	double current3 = control.ComputeOutputCurrent(torques[2], ServoType::MX64);
-	Serial.print("Currents ");
+	Serial.print("Currents: ");
 	Serial.print(current1);
-	Serial.print(" ");
+	Serial.print(", ");
 	Serial.print(current2);
-	Serial.print(" ");
+	Serial.print(", ");
 	Serial.println(current3);
 	int16_t signal1 = control.ConvertCurrentToSignalValue(current1);
 	int16_t signal2 = control.ConvertCurrentToSignalValue(current2);
@@ -107,12 +115,13 @@ void applyTorquesForPosition(double x, double y, double z)
 	dxl.setGoalCurrent(1, signal1);
 	dxl.setGoalCurrent(2, signal2);
 	dxl.setGoalCurrent(3, signal3);
-	Serial.print("Applying current signals ");
+	Serial.print("Applying current signals: ");
 	Serial.print(signal1);
-	Serial.print(" ");
-	Serial.print(signal1);
-	Serial.print(" ");
-	Serial.println(signal1);
+	Serial.print(", ");
+	Serial.print(signal2);
+	Serial.print(", ");
+	Serial.println(signal3);
+	Serial.println("======================");
 }
 
 void updatePIDvalue(int joint, char letter, int value)
@@ -199,7 +208,7 @@ void setup()
     Serial.begin(115200);
     Serial.setTimeout(100);
 
-    Serial1.begin(115200);
+    Serial1.begin(1000000);
     Serial1.transmitterEnable(2);
 
     int eeaddress = 0;
@@ -320,18 +329,21 @@ void loop() {
                 dxl.dumpPackage(dxl.tx_buffer);
                 break;
 			case 'k': //Kinematic position
-				x = Serial.parseFloat();
-				Serial.read();
-				y = Serial.parseFloat();
-				Serial.read();
-				z = Serial.parseFloat();
+				//x = Serial.parseFloat();
+				x = -505;
+				//Serial.read();
+				//y = Serial.parseFloat();
+				y = 0;
+				//Serial.read();
+				//z = Serial.parseFloat();
+				z = 240;
 				dxl.torqueEnable(1, 0);
 				dxl.torqueEnable(2, 0);
 				dxl.torqueEnable(3, 0);
 				dxl.setOperatingMode(1, 0);
 				dxl.setOperatingMode(2, 0);
 				dxl.setOperatingMode(3, 0);
-				dxl.torqueEnable(1, 1);
+				//dxl.torqueEnable(1, 1);
 				dxl.torqueEnable(2, 1);
 				dxl.torqueEnable(3, 1);
 				runControlLoop = true;
@@ -361,6 +373,6 @@ void loop() {
 		{
 			applyTorquesForPosition(x, y, z);
 		}
-        pidCalculate(1,1,1);
+        //pidCalculate(1,1,1);
     }
 }

@@ -18,7 +18,7 @@ array<double, 3> ArmControl::ComputeControlTorque(array<double, 3> thetaDesired,
 	}
 
 	//Some stuff here from the dynamics calculating the torque
-	array<double, 3> torque = dynamics.ComputeOutputTorque(computedAcceleration, thetaDesired, dThetaDesired); 
+	array<double, 3> torque = dynamics.ComputeOutputTorque(computedAcceleration, thetaFeedback, dThetaFeedback); 
 
 	return torque;
 }
@@ -26,8 +26,8 @@ array<double, 3> ArmControl::ComputeControlTorque(array<double, 3> thetaDesired,
 //Moves with maximum acceleration and velocity
 array<double, 3> ArmControl::ComputeControlTorque(array<double, 3> thetaDesired, array<double, 3> thetaFeedback, array<double, 3> dThetaFeedback)
 {
-	array<double, 3> acceleration = { 1.5, 1.5, 1.5 };
-	array<double, 3> velocity = { 3, 3, 3 };
+	array<double, 3> acceleration = { 0.5, 0.5, 0.5 };
+	array<double, 3> velocity = { 1, 1, 1 };
 	return ComputeControlTorque(thetaDesired, acceleration, velocity, thetaFeedback, dThetaFeedback);
 }
 
@@ -49,7 +49,7 @@ double ArmControl::ComputeOutputCurrent(double desiredTorque, ServoType servoTyp
 int16_t ArmControl::ConvertCurrentToSignalValue(double currentInAmps)
 {
 	double currentInMilliAmps = currentInAmps * 1000.0;
-	int16_t value = (int16_t)roundf(currentInMilliAmps / SUPPLIED_CURRENT_UNIT);
+	int16_t value = (int16_t)roundf(currentInMilliAmps / (SUPPLIED_CURRENT_UNIT));
 	return value;
 }
 

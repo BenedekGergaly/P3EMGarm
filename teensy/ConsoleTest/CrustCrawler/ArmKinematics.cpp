@@ -29,7 +29,9 @@ KinematicInverseAngles ArmKinematics::InverseKinematics(Point3D<double>& coordin
 	double len3 = 270;
 	double temp1 = pow(len1, 2) + pow(len2, 2) - pow(len3, 2);
 	double temp2 = 2.0 * len1 * len2;
-	double phi1 = acos( temp1 / temp2);
+	double fraction = temp1 / temp2;
+	fraction = fraction > 1.00 ? 1.00000 : fraction;
+	double phi1 = acos(fraction);
 	double phi2 = atan2((double)t14Vector.getZ(), -t14Vector.getX());
 	double theta21 = (M_PI / 2.0) - phi1 - phi2;
 	double theta22 = (M_PI / 2.0) + phi1 - phi2;
@@ -38,6 +40,7 @@ KinematicInverseAngles ArmKinematics::InverseKinematics(Point3D<double>& coordin
 	angles.SolutionTwo[1] = theta22;
 
 	double cTheta3 = -((pow(len2, 2) + pow(len3, 2) - pow(len1, 2)) / (2 * len2 * len3));
+	cTheta3 = cTheta3 > 1.00 ? 1.00000 : cTheta3;
 	double theta31 = atan2(sqrt(1.0 - pow(cTheta3, 2)), cTheta3);
 	double theta32 = atan2(-sqrt(1.0 - pow(cTheta3, 2)), cTheta3);
 

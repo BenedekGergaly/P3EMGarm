@@ -9,13 +9,15 @@ void ArmDynamics::add_Gravity(const double theta[3], double tau[3]) {
 	tau[2] += -g * lc[2] * m[2] * sin(theta[1] + theta[2]);
 }
 
-array<double, 3> ArmDynamics::ComputeOutputTorque(array<double, 3> controlAccelerations, array<double, 3> thetaDesired, array<double, 3> dThetaDesired)
+array<double, 3> ArmDynamics::ComputeOutputTorque(array<double, 3> controlAccelerations, array<double, 3> thetaFeedback, array<double, 3> dThetaFeedback)
 {
 	double tau[3] = { 0, 0, 0 };
 
-	add_Inertia(thetaDesired.data(), controlAccelerations.data(), tau);
-	add_Velocity(thetaDesired.data(), dThetaDesired.data(), tau);
-	add_Gravity(thetaDesired.data(), tau);
+	add_Inertia(thetaFeedback.data(), controlAccelerations.data(), tau);
+	add_Velocity(thetaFeedback.data(), dThetaFeedback.data(), tau);
+    add_Gravity(thetaFeedback.data(), tau);
+
+	tau[2] *= 4;
 
 	array<double, 3> returnArray = { tau[0], tau[1], tau[2] };
 	return returnArray;

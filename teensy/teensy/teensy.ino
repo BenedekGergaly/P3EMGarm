@@ -27,8 +27,8 @@
 #include <EEPROM.h>
 #include <Arduino.h>
 #include "servo.h"
-#include "CrustCrawler\ArmKinematics.h"
-#include "CrustCrawler\ArmControl.h"
+#include "CrustCrawler/ArmKinematics.h"
+#include "CrustCrawler/ArmControl.h"
 
 using namespace std;
 
@@ -50,7 +50,8 @@ ArmControl control;
 void applyTorquesForPosition(double x, double y, double z)
 {
 	auto point = Point3D<double>(x, y, z);
-	auto angles = kinematics.InverseKinematics(point).SolutionOne;
+	auto angles = kinematics.InverseKinematics(point).SolutionTwo;
+	angles[1] = 0.0;
 	int32_t pos1, pos2, pos3, vel1, vel2, vel3;
 	dxl.readPosition(1, pos1);
 	dxl.readPosition(2, pos2);
@@ -66,16 +67,52 @@ void applyTorquesForPosition(double x, double y, double z)
 	vel2 = control.ConvertVelocitySignal(vel2);
 	vel3 = control.ConvertVelocitySignal(vel3);
 	array<double, 3> feedbackVelocity = { vel1, vel2, vel3 };
-	auto torques = control.ComputeControlTorque(angles, feedbackPosition, feedbackVelocity);
+	Serial.print("Angles ");
+	Serial.print(angles[0]);
+	Serial.print(" ");
+	Serial.print(angles[1]);
+	Serial.print(" ");
+	Serial.println(angles[2]);
+	Serial.print("Feedback pos ");
+	Serial.print(feedbackPosition[0]);
+	Serial.print(" ");
+	Serial.print(feedbackPosition[1]);
+	Serial.print(" ");
+	Serial.println(feedbackPosition[2]);
+	Serial.print("Feedback vel ");
+	Serial.print(feedbackVelocity[0]);
+	Serial.print(" ");
+	Serial.print(feedbackVelocity[1]);
+	Serial.print(" ");
+	Serial.println(feedbackVelocity[2]);
+	array<double, 3> torques = control.ComputeControlTorque(angles, feedbackPosition, feedbackVelocity);
+	Serial.print("Torques ");
+	Serial.print(torques[0]);
+	Serial.print(" ");
+	Serial.print(torques[1]);
+	Serial.print(" ");
+	Serial.println(torques[2]);
 	double current1 = control.ComputeOutputCurrent(torques[0], ServoType::MX106);
 	double current2 = control.ComputeOutputCurrent(torques[1], ServoType::MX106);
 	double current3 = control.ComputeOutputCurrent(torques[2], ServoType::MX64);
-	int16_t signal1 = control.ConvertCurrentToSignalValue(current1, false);
-	int16_t signal2 = control.ConvertCurrentToSignalValue(current2, false);
-	int16_t signal3 = control.ConvertCurrentToSignalValue(current3, false);
+	Serial.print("Currents ");
+	Serial.print(current1);
+	Serial.print(" ");
+	Serial.print(current2);
+	Serial.print(" ");
+	Serial.println(current3);
+	int16_t signal1 = control.ConvertCurrentToSignalValue(current1, true);
+	int16_t signal2 = control.ConvertCurrentToSignalValue(current2, true);
+	int16_t signal3 = control.ConvertCurrentToSignalValue(current3, true);
 	dxl.setGoalCurrent(1, signal1);
 	dxl.setGoalCurrent(2, signal2);
 	dxl.setGoalCurrent(3, signal3);
+	Serial.print("Applying current signals ");
+	Serial.print(signal1);
+	Serial.print(" ");
+	Serial.print(signal1);
+	Serial.print(" ");
+	Serial.println(signal1);
 }
 
 void updatePIDvalue(int joint, char letter, int value)
@@ -288,6 +325,15 @@ void loop() {
 				y = Serial.parseFloat();
 				Serial.read();
 				z = Serial.parseFloat();
+				dxl.torqueEnable(1, 0);
+				dxl.torqueEnable(2, 0);
+				dxl.torqueEnable(3, 0);
+				dxl.setOperatingMode(1, 0);
+				dxl.setOperatingMode(2, 0);
+				dxl.setOperatingMode(3, 0);
+				dxl.torqueEnable(1, 1);
+				dxl.torqueEnable(2, 1);
+				dxl.torqueEnable(3, 1);
 				runControlLoop = true;
 				break;
             case ',':

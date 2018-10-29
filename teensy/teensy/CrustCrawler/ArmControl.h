@@ -10,6 +10,7 @@
 #endif
 
 #include <array>
+#include "ArmDynamics.h"
 using namespace std;
 
 enum class ServoType { MX28, MX64, MX106  };
@@ -30,7 +31,6 @@ public:
 	double ConvertVelocitySignal(int16_t signal);
 	double ConvertPositionSignal(int16_t signal);
 
-
 private:
 	const double KV = 6.5;
 	const double KP = 10.56;
@@ -40,6 +40,8 @@ private:
 	const double SUPPLIED_CURRENT_UNIT = 3.36; //mA
 	const double VELOCITY_UNIT = 0.023980823895; //radian/second pr. value
 	const double POSITION_UNIT = 0.0015358897; //Radians pr. value
+
+	ArmDynamics dynamics;
 
 private:
 };

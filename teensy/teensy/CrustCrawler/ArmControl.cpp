@@ -18,7 +18,7 @@ array<double, 3> ArmControl::ComputeControlTorque(array<double, 3> thetaDesired,
 	}
 
 	//Some stuff here from the dynamics calculating the torque
-	array<double, 3> torque = { 0, 0, 0 }; //TODO: Provide method here
+	array<double, 3> torque = dynamics.ComputeOutputTorque(computedAcceleration, thetaDesired, dThetaDesired); 
 
 	return torque;
 }
@@ -26,8 +26,8 @@ array<double, 3> ArmControl::ComputeControlTorque(array<double, 3> thetaDesired,
 //Moves with maximum acceleration and velocity
 array<double, 3> ArmControl::ComputeControlTorque(array<double, 3> thetaDesired, array<double, 3> thetaFeedback, array<double, 3> dThetaFeedback)
 {
-	array<double, 3> acceleration = { 1, 1, 2 };
-	array<double, 3> velocity = { 2, 2, 2 };
+	array<double, 3> acceleration = { 1.5, 1.5, 1.5 };
+	array<double, 3> velocity = { 3, 3, 3 };
 	return ComputeControlTorque(thetaDesired, acceleration, velocity, thetaFeedback, dThetaFeedback);
 }
 

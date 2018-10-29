@@ -11,9 +11,9 @@ ArmKinematics::~ArmKinematics()
 
 Point3D<double> ArmKinematics::ForwardKinematics(double theta1, double theta2, double theta3)
 {
-	double x = -cos(theta1)*(270 * sin(theta2 + theta3) + 221 * sin(theta2));
-	double y = -sin(theta1)*(270 * sin(theta2 + theta3) + 221 * sin(theta2));
-	double z = 270 * cos(theta2 + theta3) + 221 * cos(theta2) + 240;
+	double x = -cos(theta1)*(270 * sin(theta2 + theta3) + 235 * sin(theta2));
+	double y = -sin(theta1)*(270 * sin(theta2 + theta3) + 235 * sin(theta2));
+	double z = 270 * cos(theta2 + theta3) + 235 * cos(theta2) + 240;
 	return Point3D<double>(x, y, z);
 }
 
@@ -27,10 +27,10 @@ KinematicInverseAngles ArmKinematics::InverseKinematics(Point3D<double>& coordin
 	double len1 = pow((double)t14Matrix[0][3], 2) + pow((double)t14Matrix[2][3], 2);
 	double len2 = 235;
 	double len3 = 270;
-	double phi1 = acos((len1 + pow(len2, 2) - pow(len3, 2) / 2 * len1*len2));
+	double phi1 = acos((len1 + pow(len2, 2) - pow(len3, 2) / 2.0 * len1*len2));
 	double phi2 = atan2((double)t14Matrix[2][3], -t14Matrix[0][3]);
-	double theta21 = (M_PI / 2) - phi1 - phi2;
-	double theta22 = (M_PI / 2) + phi1 - phi2;
+	double theta21 = (M_PI / 2.0) - phi1 - phi2;
+	double theta22 = (M_PI / 2.0) + phi1 - phi2;
 
 	angles.SolutionOne[1] = theta21;
 	angles.SolutionTwo[1] = theta22;

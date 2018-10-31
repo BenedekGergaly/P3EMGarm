@@ -5,8 +5,10 @@
 #include "ArmDynamics.h"
 void ArmDynamics::add_Gravity(const double theta[3], double tau[3]) {
 	tau[0] += 0;
-	tau[1] += -g * (l[1] * m[2] * sin(theta[1]) + lc[1] * m[1] * sin(theta[1]) + lc[2] * m[2] * sin(theta[1] + theta[2] - (M_PI / 2)));
-	tau[2] += -g * lc[2] * m[2] * sin(theta[1] + theta[2] - (M_PI / 2));
+	//tau[1] += g * (l[1] * m[2] * sin(theta[1]) + lc[1] * m[1] * sin(theta[1]) + lc[2] * m[2] * sin(theta[1] + theta[2] - (M_PI / 2)));
+	tau[1] += 4*g*(sin(theta[2])*cos(theta[1])*cos(theta[1])*cos(theta[2])*lc[1] * m[1] + sin(theta[1]) * (cos(theta[2]) * cos(theta[2]) * lc[1] * m[1] + (lc[0] * m[0]) / 2.0 - (lc[1] * m[1]) / 2.0)*cos(theta[1]) - (sin(theta[2]) * cos(theta[2]) * lc[1] * m[1]) / 2.0);
+	//tau[2] += g * lc[2] * m[2] * sin(theta[1] + theta[2] - (M_PI / 2));
+	tau[2] += 4 * lc[1] * m[1] * g*(cos(theta[1])*cos(theta[1])*cos(theta[2])*sin(theta[2]) + sin(theta[1])*(cos(theta[2])*cos(theta[2]) - 0.5) * cos(theta[1]) - (sin(theta[2]) * cos(theta[3])) / 2.0);
 }
 
 array<double, 3> ArmDynamics::ComputeOutputTorque(array<double, 3> controlAccelerations, array<double, 3> thetaFeedback, array<double, 3> dThetaFeedback)

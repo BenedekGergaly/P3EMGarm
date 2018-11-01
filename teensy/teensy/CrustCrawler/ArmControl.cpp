@@ -14,7 +14,7 @@ array<double, 3> ArmControl::ComputeControlTorque(array<double, 3> thetaDesired,
 	array<double, 3> computedAcceleration;
 	for (int i = 0; i < 3; i++)
 	{
-		computedAcceleration[i] = (thetaDesired[i] - thetaFeedback[i]) * KP + (dThetaDesired[i] - dThetaFeedback[i]) * KV + ddThetaDesired[i];
+		computedAcceleration[i] = (thetaDesired[i] - thetaFeedback[i]) * KP;//+(dThetaDesired[i] - dThetaFeedback[i]) * KV + ddThetaDesired[i];
 	}
 
 	//Some stuff here from the dynamics calculating the torque
@@ -26,8 +26,8 @@ array<double, 3> ArmControl::ComputeControlTorque(array<double, 3> thetaDesired,
 //Moves with maximum acceleration and velocity
 array<double, 3> ArmControl::ComputeControlTorque(array<double, 3> thetaDesired, array<double, 3> thetaFeedback, array<double, 3> dThetaFeedback)
 {
-	array<double, 3> acceleration = { 0.5, 0.5, 0.5 };
-	array<double, 3> velocity = { 1, 1, 1 };
+	array<double, 3> acceleration = { 0,0,0 };
+	array<double, 3> velocity = { 0,0,0 };
 	return ComputeControlTorque(thetaDesired, acceleration, velocity, thetaFeedback, dThetaFeedback);
 }
 

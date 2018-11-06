@@ -14,7 +14,7 @@ array<double, 3> ArmControl::ComputeControlTorque(array<double, 3> thetaDesired,
 	array<double, 3> computedAcceleration;
 	for (int i = 0; i < 3; i++)
 	{
-		computedAcceleration[i] = (thetaDesired[i] - thetaFeedback[i]) * KP;//+(dThetaDesired[i] - dThetaFeedback[i]) * KV + ddThetaDesired[i];
+		computedAcceleration[i] = (thetaDesired[i] - thetaFeedback[i]) * KP + (dThetaDesired[i] - dThetaFeedback[i]) * KV + ddThetaDesired[i];
 	}
 
 	//Some stuff here from the dynamics calculating the torque
@@ -50,7 +50,7 @@ int16_t ArmControl::ConvertCurrentToSignalValue(double currentInAmps)
 {
 	double currentInMilliAmps = currentInAmps * 1000.0;
 	int16_t value = (int16_t)roundf(currentInMilliAmps / (SUPPLIED_CURRENT_UNIT));
-	return value;
+	return -value; // We want torque the other way
 }
 
 //Returns radians pr. sec

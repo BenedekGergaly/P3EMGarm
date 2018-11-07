@@ -11,15 +11,9 @@ using namespace std;
 class ArmDynamics {
 
 public:
-	void get_Coriolis(const double theta[3], double B[9]);
-	void get_Centrifugal(const double theta[3], double C[9]);
-	void add_Inertia(const double theta[3], const double dd_theta[3], double tau[3]);
-	void add_Velocity(const double theta[3], const double d_theta[3], double tau[3]);
-	void add_Friction(const double d_theta[3], double tau[3]);
-	void add_Gravity(const double theta[3], double tau[3]);
 	array<double, 3> ComputeOutputTorque(array<double, 3> controlAccelerations, array<double, 3> thetaDesired, array<double, 3> dThetaDesired);
 
-protected:
+private:
 	static constexpr double g = -9.815;
 
 	// Indexes
@@ -33,6 +27,12 @@ protected:
 	static constexpr double I2[9] = { 0.00623621, 0, -0.00001874, 0, 0.00769713, 0.00001319, -0.00001874, 0.00001319, 0.00006731 };
 	static constexpr double I3[9] = { 0.00677702, 0, -0.00003893, 0, 0.00635728, 0, -0.00003893, 0, 0.00019629 };
 
+	void getCoriolis(const double theta[3], double B[9]);
+	void getCentrifugal(const double theta[3], double C[9]);
+	void addInertia(const double theta[3], const double ddTheta[3], double tau[3]);
+	void addVelocity(const double theta[3], const double dtheta[3], double tau[3]);
+	void addFriction(const double dtheta[3], double tau[3]);
+	void addGravity(const double theta[3], double tau[3]);
 };
 
 #endif

@@ -23,32 +23,35 @@ array<double, 3> ArmDynamics::ComputeOutputTorque(array<double, 3> controlAccele
 }
 
 void ArmDynamics::getCoriolis(const double theta[3], double B[9]) {
-	const double B_temp = (I3[i_12] * cos(theta[0])*cos(theta[1])*cos(theta[2])) / 2 - (I3[i_11] * cos(theta[1])*cos(theta[2])*sin(theta[0])) / 2 + (I3[i_32] * cos(theta[0])*cos(theta[1])*sin(theta[2])) / 2 + (I3[i_32] * cos(theta[0])*cos(theta[2])*sin(theta[1])) / 2 - (I3[i_12] * cos(theta[0])*sin(theta[1])*sin(theta[2])) / 2 - (I3[i_31] * cos(theta[1])*sin(theta[0])*sin(theta[2])) / 2 - (I3[i_31] * cos(theta[2])*sin(theta[0])*sin(theta[1])) / 2 + (I3[i_11] * sin(theta[0])*sin(theta[1])*sin(theta[2])) / 2;
-	const double B_temp2 = (I3[i_31] * cos(theta[0])*cos(theta[1])*cos(theta[2])) / 2 - (I3[i_11] * cos(theta[0])*cos(theta[1])*sin(theta[2])) / 2 - (I3[i_11] * cos(theta[0])*cos(theta[2])*sin(theta[1])) / 2 + (I3[i_32] * cos(theta[1])*cos(theta[2])*sin(theta[0])) / 2 - (I3[i_12] * cos(theta[1])*sin(theta[0])*sin(theta[2])) / 2 - (I3[i_12] * cos(theta[2])*sin(theta[0])*sin(theta[1])) / 2 - (I3[i_31] * cos(theta[0])*sin(theta[1])*sin(theta[2])) / 2 - (I3[i_32] * sin(theta[0])*sin(theta[1])*sin(theta[2])) / 2;
+	const double temp1 = (2 * I3[i_12] + 2 * I3[i_21]) * cos(theta[0]) * cos(theta[0]);
+	const double temp2 = 2 * sin(theta[0]) * cos(theta[0]) * (I3[i_11] - I3[i_22]) - I3[i_12] - I3[i_21];
+	const double temp3 = (-2 * I3[i_12] - 2 * I3[i_21]) * cos(theta[0]) * cos(theta[0]) + 2 * sin(theta[0]) * cos(theta[0]) * (I3[i_11] - I3[i_22]) + I3[i_12] + I3[i_21];
 
-	B[i_11] = (I2[i_31] * cos(theta[0])*cos(theta[1])) / 2 - (I2[i_11] * cos(theta[0])*sin(theta[1])) / 2 + (I2[i_32] * cos(theta[1])*sin(theta[0])) / 2 - (I2[i_12] * sin(theta[0])*sin(theta[1])) / 2 + B_temp2;
-	B[i_12] = B_temp2;
-	B[i_13] = I3[i_21] * cos(theta[0]) + I3[i_22] * sin(theta[0]);
+	B[i_11] = 4 * sin(theta[2]) * m[2] * lc[2] * (cos(theta[2]) * lc[2] + l[1]) * cos(theta[1]) * cos(theta[1]) + 4 * sin(theta[1]) * (cos(theta[2]) * cos(theta[2]) * m[2] * lc[2] * lc[2] + cos(theta[2]) * l[1] * m[2] * lc[2] + ((l[1] * l[1]) / 2.0 - (lc[2] * lc[2]) / 2.0) * m[2] + (m[1] * lc[1] * lc[1]) / 2.0) * cos(theta[1]) - 2 * sin(theta[2]) * m[2] * lc[2] * (cos(theta[2]) * lc[2] + l[1]);
+	B[i_12] = 2 * m[2] * lc[2] * (sin(theta[2]) * (2 * cos(theta[2]) * lc[2] + l[1]) * cos(theta[1]) * cos(theta[1]) + sin(theta[1]) * (2 * lc[2] * cos(theta[2]) * cos(theta[2]) + l[1] * cos(theta[2]) - lc[2]) * cos(theta[1]) - sin(theta[2]) * (cos(theta[2]) * lc[2] + l[1]));
+	B[i_13] = temp1 - temp2;
 
-	B[i_21] = (I2[i_12] * cos(theta[0])*cos(theta[1])) / 2 - (I2[i_11] * cos(theta[1])*sin(theta[0])) / 2 + (I2[i_32] * cos(theta[0])*sin(theta[1])) / 2 - (I2[i_31] * sin(theta[0])*sin(theta[1])) / 2 + B_temp;
-	B[i_22] = B_temp;
-	B[i_23] = 0;
+	B[i_21] = (-2 * I2[i_12] - 2 * I2[i_21] - 2 * I3[i_12] - 2 * I3[i_21]) * cos(theta[1]) * cos(theta[1]) + 2 * sin(theta[0]) * cos(theta[0]) * (I2[i_11] - I2[i_22] + I3[i_11] - I3[i_22]) + I2[i_12] + I2[i_21] + I3[i_12] + I3[i_21];
+	B[i_22] = temp1 + temp2;
+	B[i_23] = - 2 * m[2] * lc[2] * l[1] * sin(theta[2]);
 
-	B[i_31] = B_temp;
-	B[i_32] = B_temp;
-	B[i_33] = l[1] * lc[2] * m[2] * sin(theta[2]);
+	B[i_31] = temp3;
+	B[i_32] = temp3;
+	B[i_33] = 0;
 }
 
 void ArmDynamics::getCentrifugal(const double theta[3], double C[9]) {
 	C[i_11] = 0;
-	C[i_12] = (I2[i_21] * cos(theta[0])) / 2 + (I3[i_21] * cos(theta[0])) / 2 + (I2[i_22] * sin(theta[0])) / 2 + (I3[i_22] * sin(theta[0])) / 2;
-	C[i_13] = (I3[i_21] * cos(theta[0])) / 2 + (I3[i_22] * sin(theta[0])) / 2;
+	C[i_12] = ((2 * I2[i_12] + 2 * I2[i_21] + 2 * I3[i_12] + 2 * I3[i_21]) * cos(theta[0]) * cos(theta[0])) / 2.0 - sin(theta[0]) * cos(theta[0]) * (I2[i_11] - I2[i_22] + I3[i_11] - I3[i_22]) - I2[i_12] / 2.0 - I2[i_21] / 2.0 - I3[i_12] / 2.0 - I3[i_21] / 2.0;
+	C[i_13] = ((2 * I3[i_12] + 2 * I3[i_21]) * cos(theta[0]) * cos(theta[0])) / 2.0 - sin(theta[0]) * cos(theta[0]) * (I3[i_11] - I3[i_22]) - I3[i_12] / 2.0 - I3[i_21] / 2.0;
 
-	C[i_21] = (I3[i_13] * cos(theta[1] + theta[2])) / 2 + (I3[i_33] * sin(theta[1] + theta[2])) / 2 + (I2[i_13] * cos(theta[1])) / 2 + (I2[i_33] * sin(theta[1])) / 2 - (pow(lc[2], 2)*m[2] * sin(2 * theta[1] + 2 * theta[2])) / 2 - (pow(l[1], 2)*m[2] * sin(2 * theta[1])) / 2 - (pow(lc[1], 2)*m[1] * sin(2 * theta[1])) / 2 - l[1] * lc[2] * m[2] * sin(2 * theta[1] + theta[2]);
+	C[i_21] = -2 * sin(theta[2]) * m[2] * lc[2] * (cos(theta[2]) * lc[2] + l[1]) * cos(theta[1]) * cos(theta[1]) - (2 * cos(theta[2]) * cos(theta[2]) * m[2] * lc[2] * lc[2] + 2 * cos(theta[2]) * l[1] * m[2] * lc[2] + (l[1] * l[1] - lc[2] * lc[2]) * m[2] + m[1] * lc[1] * lc[1]) * sin(theta[1]) * cos(theta[1])
+			  + ((I2[i_13] + I2[i_31] + I3[i_13] + I3[i_31]) * cos(theta[0])) / 2.0 + m[2] * lc[2] * lc[2] * sin(theta[2]) * cos(theta[2]) + ((I2[i_32] + I2[i_23] + I3[i_32] + I3[i_23]) * sin(theta[0])) / 2.0 + m[2] * lc[2] * sin(theta[2]) * l[1];
 	C[i_22] = 0;
 	C[i_23] = 0;
 
-	C[i_31] = (I3[i_13] * cos(theta[1] + theta[2])) / 2 + (I3[i_33] * sin(theta[1] + theta[2])) / 2 - (pow(lc[2], 2)*m[2] * sin(2 * theta[1] + 2 * theta[2])) / 2 + (l[1] * lc[2] * m[2] * sin(theta[2])) / 2 - (l[1] * lc[2] * m[2] * sin(2 * theta[1] + theta[2])) / 2;
+	C[i_31] = -2 * (cos(theta[2]) * lc[2] + l[1] / 2.0) * m[2] * sin(theta[2]) * lc[2] * cos(theta[1]) * cos(theta[1]) - 2 * sin(theta[1]) * cos(theta[1]) * m[2] * lc[2] * (lc[2] * cos(theta[2]) * cos(theta[2]) + (l[1] * cos(theta[2])) / 2.0 - lc[2] / 2.0) + m[2] * lc[2] * lc[2] * sin(theta[2]) * cos(theta[2])
+		      + m[2] * lc[2] * sin(theta[2]) * l[1] + ((I3[i_13] + I3[i_31]) * cos(theta[0])) / 2.0 + ((I3[i_23] + I3[i_32]) * sin(theta[0])) / 2.0;
 	C[i_32] = l[1] * lc[2] * m[2] * sin(theta[2]);
 	C[i_33] = 0;
 }

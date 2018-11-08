@@ -37,7 +37,6 @@ private:
 
 	ArmDynamics dynamics;
 
-private:
 };
 
 #endif

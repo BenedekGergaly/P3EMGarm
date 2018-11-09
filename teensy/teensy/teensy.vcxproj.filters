@@ -39,6 +39,9 @@
     <ClInclude Include="CrustCrawler\Models\KinematicInverseAngles.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CrustCrawler\ArmTrajectory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="servo.cpp">
@@ -57,6 +60,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CrustCrawler\Models\KinematicInverseAngles.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CrustCrawler\ArmTrajectory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

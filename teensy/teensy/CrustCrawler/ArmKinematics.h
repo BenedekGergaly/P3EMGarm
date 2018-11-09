@@ -18,6 +18,10 @@ private:
 	double** getT14Matrix(double theta1, Point3D<double> &coordinates) const;
 	Point3D<double> getT14Pos(double theta1, Point3D<double> &coordinates) const;
 
+	const double length1 = 67.0;
+	const double length2 = 224.0;
+	const double length3 = 149.0;
+
 private:
 };
 

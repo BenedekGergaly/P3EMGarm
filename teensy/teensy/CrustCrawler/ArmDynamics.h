@@ -19,8 +19,8 @@ private:
 	// Indexes
 	static constexpr short i_11 = 0, i_12 = 1, i_13 = 2, i_21 = 3, i_22 = 4, i_23 = 5, i_31 = 6, i_32 = 7, i_33 = 8;
 
-	static constexpr double l[3] = { 0.08, 0.235, 0.150 }; // [m] Link lengths
-	static constexpr double lc[3] = { 0.04, 0.1631, 0.13068 }; // [m] Lengths to CoM
+	static constexpr double l[3] = { 0.067, 0.224, 0.149 }; // [m] Link lengths
+	static constexpr double lc[3] = { 0.04, 0.17670, 0.13468 }; // [m] Lengths to CoM
 	static constexpr double m[3] = { 0.1956, 0.227, 0.285 }; // [kg] Link mass
 																	   // Inertia tensors [kg*m^2]
 	static constexpr double I1[9] = { 0.00031543, 0, -0.00000002, 0, 0.00042781, 0.00000456, -0.00000002, 0.00000456, 0.00008106 };

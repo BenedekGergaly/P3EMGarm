@@ -23,9 +23,9 @@ private:
 	static constexpr double lc[3] = { 0.04, 0.17670, 0.13468 }; // [m] Lengths to CoM
 	static constexpr double m[3] = { 0.1956, 0.227, 0.285 }; // [kg] Link mass
 																	   // Inertia tensors [kg*m^2]
-	static constexpr double I1[9] = { 0.00031543, 0, -0.00000002, 0, 0.00042781, 0.00000456, -0.00000002, 0.00000456, 0.00008106 };
-	static constexpr double I2[9] = { 0.00623621, 0, -0.00001874, 0, 0.00769713, 0.00001319, -0.00001874, 0.00001319, 0.00006731 };
-	static constexpr double I3[9] = { 0.00677702, 0, -0.00003893, 0, 0.00635728, 0, -0.00003893, 0, 0.00019629 };
+	static constexpr double I1[9] = { 0.00039968, 0.00000007, -0.00000547, 0.00000007, 0.00037926, -0.00000609, -0.00000547, -0.00000609, 0.00005511 };
+	static constexpr double I2[9] = { 0.00005997, -0.00014512, 0.00002275, -0.00014512, 0.00761485,  -0.00000052, 0.00002275, -0.00000052, 0.00760132 };
+	static constexpr double I3[9] = { 0.00019476, 0.00014581, -0.00003861, 0.00014581, 0.00612172, -0.00000075, -0.00003861, -0.00000075, 0.00601887 };
 
 	void getCoriolis(const double theta[3], double B[9]);
 	void getCentrifugal(const double theta[3], double C[9]);

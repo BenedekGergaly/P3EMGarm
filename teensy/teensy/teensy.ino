@@ -43,45 +43,24 @@ unsigned long timer = 0;
 double x, y, z;
 bool runControlLoop = false;
 
-servo dxl = servo();
+servo dxl;
 ArmKinematics kinematics;
 ArmControl control;
 
 void applyTorquesForPosition(double x, double y, double z)
 {
-	unsigned long timerK, timerD, timerS, timerTemp;
 	Serial.print("XYZ: ");
 	Serial.print(x);
 	Serial.print(", ");
 	Serial.print(y);
 	Serial.print(", ");
 	Serial.println(z);
+
 	auto point = Point3D<double>(x, y, z);
-	timerTemp = millis();
 	auto angles = kinematics.InverseKinematics(point).SolutionOne;
-	timerK = millis() - timerTemp;
-	int32_t pos1, pos2, pos3, vel1, vel2, vel3;
-	double pos1d, pos2d, pos3d, vel1d, vel2d, vel3d;
-	timerTemp = millis();
-	dxl.readPosition(1, pos1),
-	dxl.readPosition(2, pos2);
-	dxl.readPosition(3, pos3);
-	timerS += millis() - timerTemp;
-	pos1d = control.ConvertPositionSignal(pos1);
-	pos2d = control.ConvertPositionSignal(pos2);
-	pos3d = control.ConvertPositionSignal(pos3);
-	array<double, 3> feedbackPosition = { pos1d, pos2d, pos3d };
-	timerTemp = millis();
-	dxl.readVelocity(1, vel1);
-	dxl.readVelocity(2, vel2);
-	dxl.readVelocity(3, vel3);
-	timerS += millis() - timerTemp;
-	vel1d = control.ConvertVelocitySignal(vel1);
-	vel2d = control.ConvertVelocitySignal(vel2);
-	vel3d = control.ConvertVelocitySignal(vel3);
-	array<double, 3> feedbackVelocity = { vel1d, vel2d, vel3d };
-	timerTemp = millis();
-	Serial.print("Angles: ");
+
+	array<double, 3> feedbackPosition = control.ReadPositionRadArray();
+	array<double, 3> feedbackVelocity = control.ReadVelocityRadArray();
 	Serial.print(angles[0]);
 	Serial.print(", ");
 	Serial.print(angles[1]);
@@ -99,45 +78,37 @@ void applyTorquesForPosition(double x, double y, double z)
 	Serial.print(feedbackVelocity[1]);
 	Serial.print(", ");
 	Serial.println(feedbackVelocity[2]);
-	timerS += millis() - timerTemp;
-	timerTemp = millis();
+
 	array<double, 3> torques = control.ComputeControlTorque(angles, feedbackPosition, feedbackVelocity);
-	timerD += millis() - timerTemp;
-	timerTemp = millis();
 	Serial.print("Torques: ");
 	Serial.print(torques[0]);
 	Serial.print(", ");
 	Serial.print(torques[1]);
 	Serial.print(", ");
 	Serial.println(torques[2]);
-	double current1 = control.ComputeOutputCurrent(torques[0], ServoType::MX106);
-	double current2 = control.ComputeOutputCurrent(torques[1], ServoType::MX106);
-	double current3 = control.ComputeOutputCurrent(torques[2], ServoType::MX64);
-	Serial.print("Currents: ");
-	Serial.print(current1);
-	Serial.print(", ");
-	Serial.print(current2);
-	Serial.print(", ");
-	Serial.println(current3);
-	int16_t signal1 = control.ConvertCurrentToSignalValue(current1);
-	int16_t signal2 = control.ConvertCurrentToSignalValue(current2);
-	int16_t signal3 = control.ConvertCurrentToSignalValue(current3);
-	dxl.setGoalCurrent(1, signal1);
-	dxl.setGoalCurrent(2, signal2);
-	dxl.setGoalCurrent(3, signal3);
-	Serial.print("Applying current signals: ");
-	Serial.print(signal1);
-	Serial.print(", ");
-	Serial.print(signal2);
-	Serial.print(", ");
-	Serial.println(signal3);
-	timerS += timerTemp - millis();
-	Serial.print("Time consumption (Kinematics, Dynamics, Serial): ");
-	Serial.print(timerK); Serial.print(", ");
-	Serial.print(timerD); Serial.print(", ");
-	Serial.println(timerS);
-	timerK = 0; timerD = 0; timerS = 0;
-	Serial.println("======================");
+
+	control.SendTorquesAllInOne(torques);
+	//double current1 = control.ComputeOutputCurrent(torques[0], ServoType::MX106);
+	//double current2 = control.ComputeOutputCurrent(torques[1], ServoType::MX106);
+	//double current3 = control.ComputeOutputCurrent(torques[2], ServoType::MX64);
+	//Serial.print("Currents: ");
+	//Serial.print(current1);
+	//Serial.print(", ");
+	//Serial.print(current2);
+	//Serial.print(", ");
+	//Serial.println(current3);
+	//int16_t signal1 = control.ConvertCurrentToSignalValue(current1);
+	//int16_t signal2 = control.ConvertCurrentToSignalValue(current2);
+	//int16_t signal3 = control.ConvertCurrentToSignalValue(current3);
+	//dxl.setGoalCurrent(1, signal1);
+	//dxl.setGoalCurrent(2, signal2);
+	//dxl.setGoalCurrent(3, signal3);
+	//Serial.print("Applying current signals: ");
+	//Serial.print(signal1);
+	//Serial.print(", ");
+	//Serial.print(signal2);
+	//Serial.print(", ");
+	//Serial.println(signal3);
 }
 
 void updatePIDvalue(int joint, char letter, int value)
@@ -389,6 +360,7 @@ void loop() {
 		{
 			applyTorquesForPosition(x, y, z);
 		}
+		control.CheckOverspeed(0.8);
         //pidCalculate(1,1,1);
     }
 }

@@ -64,3 +64,79 @@ double ArmControl::ConvertPositionSignal(int16_t signal)
 {
 	return signal * POSITION_UNIT;
 }
+
+double ArmControl::ReadPositionRad(int id)
+{
+	int32_t pos;
+	dxl.readPosition(id, pos);
+	return ConvertPositionSignal(pos);
+}
+
+double ArmControl::ReadVelocityRad(int id)
+{
+	int32_t vel;
+	dxl.readVelocity(id, vel);
+	return ConvertVelocitySignal(vel);
+}
+
+array<double, 3> ArmControl::ReadPositionRadArray()
+{
+	array<double, 3> output;
+	for (int i = 0; i < 3; i++)
+	{
+		int32_t pos;
+		dxl.readPosition(i+1, pos);
+		output[i] = ConvertPositionSignal(pos);
+	}
+	return output;
+}
+
+array<double, 3> ArmControl::ReadVelocityRadArray()
+{
+	array<double, 3> output;
+	for (int i = 0; i < 3; i++)
+	{
+		int32_t vel;
+		dxl.readVelocity(i+1, vel);
+		output[i] = ConvertPositionSignal(vel);
+	}
+	return output;
+}
+
+void ArmControl::SendTorquesAllInOne(array<double, 3> torques)
+{
+	double current1 = ComputeOutputCurrent(torques[0], ServoType::MX106);
+	double current2 = ComputeOutputCurrent(torques[1], ServoType::MX106);
+	double current3 = ComputeOutputCurrent(torques[2], ServoType::MX64);
+	int16_t signal1 = ConvertCurrentToSignalValue(current1);
+	int16_t signal2 = ConvertCurrentToSignalValue(current2);
+	int16_t signal3 = ConvertCurrentToSignalValue(current3);
+	dxl.setGoalCurrent(1, signal1);
+	dxl.setGoalCurrent(2, signal2);
+	dxl.setGoalCurrent(3, signal3);
+}
+
+bool ArmControl::CheckOverspeed(double speedLimit)
+{
+	bool triggered = 0;
+	for (int i = 1; i < 4; i++)
+	{
+		if (ReadVelocityRad(i) > speedLimit)
+		{
+			Serial.print("WARNING: Overspeed servo #");
+			Serial.println(i);
+			Serial.println("Stopping all!");
+			triggered = 1;
+		}
+	}
+	if (triggered)
+	{
+		for (int j = 1; j < 4; j++)
+		{
+			dxl.torqueEnable(j, 0);
+			dxl.setOperatingMode(j, 3);
+			dxl.torqueEnable(j, 1);
+		}
+	}
+	return triggered;
+}

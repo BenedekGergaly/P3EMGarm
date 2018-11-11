@@ -5,6 +5,8 @@
 
 #include <array>
 #include "ArmDynamics.h"
+#include "servo.h"
+
 using namespace std;
 
 enum class ServoType { MX28, MX64, MX106  };
@@ -25,6 +27,13 @@ public:
 	double ConvertVelocitySignal(int16_t signal);
 	double ConvertPositionSignal(int16_t signal);
 
+	double ReadPositionRad(int id);
+	double ReadVelocityRad(int id);
+	array<double, 3> ReadPositionRadArray();
+	array<double, 3> ReadVelocityRadArray();
+	void SendTorquesAllInOne(array<double, 3> torques);
+
+	bool CheckOverspeed(double speedLimit);
 private:
 	const double KV = 6.5;
 	const double KP = 10.56;
@@ -36,7 +45,7 @@ private:
 	const double POSITION_UNIT = 0.0015358897; //Radians pr. value
 
 	ArmDynamics dynamics;
-
+	servo dxl;
 };
 
 #endif

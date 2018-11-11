@@ -28,6 +28,11 @@ servo::servo()
     
 }
 
+servo::~servo()
+{
+
+}
+
 
 
  // Low-level functions for setting individual bytes in the buffers.

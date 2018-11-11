@@ -23,7 +23,7 @@
     <ProjectGuid>{B68B31EB-916E-450D-B136-AE734D712E73}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>ConsoleTest</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -147,6 +147,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CrustCrawler\ArmTrajectory.cpp" />
     <ClCompile Include="ConsoleTest.cpp" />
     <ClCompile Include="CrustCrawler\ArmControl.cpp" />
     <ClCompile Include="CrustCrawler\ArmDynamics.cpp" />
@@ -155,6 +156,7 @@
     <ClCompile Include="CrustCrawler\Models\Point3D.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CrustCrawler\ArmTrajectory.h" />
     <ClInclude Include="CrustCrawler\ArmControl.h" />
     <ClInclude Include="CrustCrawler\ArmDynamics.h" />
     <ClInclude Include="CrustCrawler\ArmKinematics.h" />

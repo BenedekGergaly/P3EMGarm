@@ -4,7 +4,7 @@
 #define _POINT3D_h
 
 
-#include "math.h"
+#include <cmath>
 
 template <typename T>
 class Point3D

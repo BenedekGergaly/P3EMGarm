@@ -2,8 +2,6 @@
 
 #include <array>
 #include <cmath>
-#include <Arduino.h>
-
 using namespace std;
 
 class ArmTrajectory
@@ -21,14 +19,17 @@ public:
 	bool goalReachedFlag = 0;
 	bool continousMoveFlag = 0;
 
+	double time = 0;
+
+	array<array<double, 3>, 3> output;
+
 private:
 	array<double, 3> goalAngles, goalSpeeds, goalAccelerations, startAngles;
 	double startTime, desiredTime;
-	array<array<double, 3>, 3> output; //1st index: servo#; 2nd index: angle, speed, acc
+ //1st index: servo#; 2nd index: angle, speed, acc
 	array<double, 3> tb;
 	bool newGoalFlag = 0;
 	double measureRateTempTime, measureRateTempCounter;
 	double currentRate;
-	double millisDouble();
 };
 

@@ -21,6 +21,9 @@
  * SOFTWARE.
  */
 
+#ifndef _SERVO_h
+#define _SERVO_h
+
 #include <Arduino.h>
 
 #define TX_BUFFER_LEN 30
@@ -33,6 +36,7 @@ class servo
 {
     public:
         servo();
+		~servo();
         void putInt8t(int8_t value, uint8_t* buffer, size_t pos);
         int8_t getInt8t(uint8_t* buffer, size_t pos);
         void putUint8t(uint8_t value, uint8_t* buffer, size_t pos);
@@ -102,3 +106,5 @@ class servo
       0x8213, 0x0216, 0x021C, 0x8219, 0x0208, 0x820D, 0x8207, 0x0202
     };
 };
+
+#endif

@@ -131,12 +131,18 @@ bool ArmControl::CheckOverspeed(double speedLimit)
 	}
 	if (triggered)
 	{
-		for (int j = 1; j < 4; j++)
-		{
-			dxl.torqueEnable(j, 0);
-			dxl.setOperatingMode(j, 3);
-			dxl.torqueEnable(j, 1);
-		}
+		SoftEstop();
 	}
 	return triggered;
+}
+
+void ArmControl::SoftEstop()
+{
+	for (int j = 1; j < 4; j++)
+	{
+		dxl.torqueEnable(j, 0);
+		dxl.setOperatingMode(j, 3);
+		dxl.torqueEnable(j, 1);
+	}
+	Serial.println("[INFO] Control: SoftEstop has been called");
 }

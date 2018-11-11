@@ -34,7 +34,7 @@ void ArmTrajectory::setNewGoal(array<double, 3> currentAngles, array<double, 3> 
 			Serial.print("[ERROR] Trajectory: Acceleration too low or time too short for trajectory generation for servo #");
 			Serial.println(i);
 			Serial.println("Aborting!");
-			while (1);
+			control.SoftEstop();
 		}
 	}
 }

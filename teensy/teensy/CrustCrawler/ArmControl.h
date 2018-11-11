@@ -34,6 +34,7 @@ public:
 	void SendTorquesAllInOne(array<double, 3> torques);
 
 	bool CheckOverspeed(double speedLimit);
+	void SoftEstop();
 private:
 	const double KV = 6.5;
 	const double KP = 10.56;

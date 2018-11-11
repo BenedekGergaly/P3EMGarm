@@ -3,6 +3,7 @@
 #include <array>
 #include <cmath>
 #include <Arduino.h>
+#include "ArmControl.h"
 
 using namespace std;
 
@@ -30,5 +31,6 @@ private:
 	double measureRateTempTime, measureRateTempCounter;
 	double currentRate;
 	double millisDouble();
+	ArmControl control;
 };
 

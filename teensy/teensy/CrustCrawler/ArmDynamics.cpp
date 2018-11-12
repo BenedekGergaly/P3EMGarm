@@ -62,7 +62,7 @@ void ArmDynamics::addInertia(const double theta[3], const double ddTheta[3], dou
 	const double temp3 = (-I3[i_11] + I3[i_22]) * cos(theta[0]) * cos(theta[0]) - sin(theta[0]) * cos(theta[0]) * (I3[i_12] + I3[i_21]) + m[2] * lc[2] * lc[2] + I3[i_11];
 
 	const double M[9] = {
-		(-2.0 * m[2] * lc[2] * lc[2] * cos(theta[2]) * cos(theta[2]) - 2.0 * m[2] * l[1] * lc[2] * cos(theta[2]) + (-l[1] * l[1] + lc[2] * lc[2]) * m[2] - m[1] * lc[1] * lc[1]) * cos(theta[1]) * cos(theta[1]) + 2 * sin(theta[1])*sin(theta[2]) * m[2] * lc[2] * (cos(theta[2]) * lc[2] + l[1]) * cos(theta[1]) + m[2] * lc[2] * lc[2] * cos(theta[2]) * cos(theta[2]) + 2 * m[2] * l[1] * lc[2] * cos(theta[2]) + m[2] * l[1] * l[1] + m[1] * lc[1] * lc[1] + I1[i_33] + I2[i_33] + I3[i_33],
+		(-2.0 * m[2] * lc[2] * lc[2] * cos(theta[2]) * cos(theta[2]) - 2.0 * m[2] * l[1] * lc[2] * cos(theta[2]) + (-(l[1] * l[1]) + lc[2] * lc[2]) * m[2] - m[1] * lc[1] * lc[1]) * cos(theta[1]) * cos(theta[1]) + 2 * sin(theta[1])*sin(theta[2]) * m[2] * lc[2] * (cos(theta[2]) * lc[2] + l[1]) * cos(theta[1]) + m[2] * lc[2] * lc[2] * cos(theta[2]) * cos(theta[2]) + 2 * m[2] * l[1] * lc[2] * cos(theta[2]) + m[2] * l[1] * l[1] + m[1] * lc[1] * lc[1] + I1[i_33] + I2[i_33] + I3[i_33],
 		temp1,
 		temp2,
 

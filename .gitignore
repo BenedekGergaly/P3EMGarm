@@ -9,3 +9,4 @@ teensy/ConsoleTest/Release/
 teensy/ConsoleTest/x64/
 SimscapeSimulation/Dynamics/slprj/
 SimscapeSimulation/Dynamics/CrustCrawler_Model.slxc
+*.autosave

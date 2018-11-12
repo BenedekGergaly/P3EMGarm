@@ -50,7 +50,7 @@ int16_t ArmControl::ConvertCurrentToSignalValue(double currentInAmps)
 {
 	double currentInMilliAmps = currentInAmps * 1000.0;
 	int16_t value = (int16_t)roundf(currentInMilliAmps / (SUPPLIED_CURRENT_UNIT));
-	return -value; // We want torque the other way
+	return value; // We want torque the other way - NO
 }
 
 //Returns radians pr. sec
@@ -98,7 +98,7 @@ array<double, 3> ArmControl::ReadVelocityRadArray()
 	{
 		int32_t vel;
 		dxl.readVelocity(i+1, vel);
-		output[i] = ConvertPositionSignal(vel);
+		output[i] = ConvertVelocitySignal(vel);
 	}
 	return output;
 }

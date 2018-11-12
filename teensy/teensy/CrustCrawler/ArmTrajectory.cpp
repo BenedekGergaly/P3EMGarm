@@ -15,6 +15,7 @@ void ArmTrajectory::setNewGoal(array<double, 3> currentAngles, array<double, 3> 
 {
 	continousMoveFlag = 0;
 	newGoalFlag = 1;
+	goalReachedFlag = 0;
 	goalAngles = goalAnglesT;
 	goalAccelerations = goalAccelerationsT;
 	startAngles = currentAngles;
@@ -53,7 +54,7 @@ array<array<double, 3>, 3> ArmTrajectory::calculate()
 		}
 		else if (millisDouble()/1000-startTime > desiredTime-tb[i] && millisDouble()/1000 - startTime < desiredTime) //end curve
 		{
-			output[i][1] = goalAccelerations[i] * tb[i] - goalAccelerations[i] * (tb[i] - (desiredTime - millisDouble() / 1000));
+			output[i][1] = goalAccelerations[i] * tb[i] - goalAccelerations[i] * (tb[i] - (desiredTime - (millisDouble() / 1000-startTime)));
 			output[i][2] = -goalAccelerations[i];
 		}
 		else if (millisDouble()/1000-startTime > desiredTime) //finished
@@ -62,7 +63,7 @@ array<array<double, 3>, 3> ArmTrajectory::calculate()
 			output[i][1] = 0;
 			output[i][2] = 0;
 		}
-		else if (millisDouble() / 1000 > tb[i] && millisDouble() / 1000 < desiredTime - tb[i])//middle curve
+		else if (millisDouble() / 1000 - startTime > tb[i] && millisDouble() / 1000 - startTime < desiredTime - tb[i])//middle curve
 		{
 			output[i][1] = goalAccelerations[i] * tb[i];
 			output[i][2] = 0;
@@ -73,7 +74,12 @@ array<array<double, 3>, 3> ArmTrajectory::calculate()
 		Serial.println("[INFO] Trajectory: Goal reached");
 		newGoalFlag = 0;
 	}
-
+	Serial.print("trajectory outputs: ");
+	Serial.print(output[2][0]);
+	Serial.print("   ");
+	Serial.print(output[2][1]);
+	Serial.print("   ");
+	Serial.println(output[2][2]);
 	return output;
 }
 
@@ -165,5 +171,6 @@ array<array<double, 3>, 3> ArmTrajectory::calculateContinousMove()
 
 double ArmTrajectory::millisDouble()
 {
-	return (double)millisDouble();
+	return (double)millis();
+	//return time;
 }

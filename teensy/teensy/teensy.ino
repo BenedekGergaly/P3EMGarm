@@ -29,6 +29,7 @@
 #include "servo.h"
 #include "CrustCrawler/ArmKinematics.h"
 #include "CrustCrawler/ArmControl.h"
+#include "CrustCrawler\ArmTrajectory.h"
 
 using namespace std;
 
@@ -46,6 +47,34 @@ bool runControlLoop = false;
 servo dxl;
 ArmKinematics kinematics;
 ArmControl control;
+ArmTrajectory trajectory;
+
+void debug()
+{
+	array<double, 3> startAngles = { 0,0,-0.34 };
+	array<double, 3> goalAngles = { 0,0,0.8 };
+	array<double, 3> goalAccelerations = { 0,0,1};
+	array<double, 3> goalVelocities = { 0,0,2 };
+	int desiredTime = 3000;
+	ArmTrajectory trajectory;
+	trajectory.time = 2500;
+
+	//trajectory.startContinousMove(startAngles, goalAccelerations, goalVelocities);
+	trajectory.setNewGoal(startAngles, goalAngles, goalAccelerations, desiredTime);
+
+	while (trajectory.goalReachedFlag == 0)
+	{
+		trajectory.time += 100;
+		//trajectory.calculateContinousMove();
+		trajectory.calculate();
+		//Serial.print(trajectory.output[2][0]);
+		//Serial.print("   ");
+		//Serial.print(trajectory.output[2][1]);
+		//Serial.print("   ");
+		//Serial.println(trajectory.output[2][2]);
+		//if (trajectory.time > 5000) trajectory.stopContinousMove();
+	}
+}
 
 void applyTorquesForPosition(double x, double y, double z)
 {
@@ -79,7 +108,18 @@ void applyTorquesForPosition(double x, double y, double z)
 	Serial.print(", ");
 	Serial.println(feedbackVelocity[2]);
 
-	array<double, 3> torques = control.ComputeControlTorque(angles, feedbackPosition, feedbackVelocity);
+	array<array<double, 3>, 3> inputs = trajectory.calculate();
+	array<double, 3> desiredAngles;
+	array<double, 3> speeds;
+	array<double, 3> accs;
+	for (int i = 0; i < 3; i++)
+	{
+		desiredAngles[i] = inputs[i][0];
+		speeds[i] = inputs[i][1];
+		accs[i] = inputs[i][2];
+	}
+
+	array<double, 3> torques = control.ComputeControlTorque(desiredAngles, speeds, accs, feedbackPosition, feedbackVelocity);
 	Serial.print("Torques: ");
 	Serial.print(torques[0]);
 	Serial.print(", ");
@@ -109,6 +149,7 @@ void applyTorquesForPosition(double x, double y, double z)
 	//Serial.print(signal2);
 	//Serial.print(", ");
 	//Serial.println(signal3);
+	Serial.println("=================");
 }
 
 void updatePIDvalue(int joint, char letter, int value)
@@ -316,6 +357,7 @@ void loop() {
                 dxl.dumpPackage(dxl.tx_buffer);
                 break;
 			case 'k': //Kinematic position
+			{
 				//x = Serial.parseFloat();
 				x = -505;
 				//Serial.read();
@@ -328,12 +370,21 @@ void loop() {
 				dxl.torqueEnable(2, 0);
 				dxl.torqueEnable(3, 0);
 				dxl.setOperatingMode(1, 0);
-				dxl.setOperatingMode(2, 0);
+				dxl.setOperatingMode(2, 3);
 				dxl.setOperatingMode(3, 0);
 				//dxl.torqueEnable(1, 1);
 				dxl.torqueEnable(2, 1);
 				dxl.torqueEnable(3, 1);
 				runControlLoop = true;
+				array<double, 3> desiredAngles = {0,0,0};
+				array<double, 3> desiredAccelerations = {0,0,1};
+				array<double, 3> currentAngles = control.ReadPositionRadArray();
+				Serial.println(currentAngles[2]);
+				trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 3000);
+				break;
+			}
+			case 'd':
+				debug();
 				break;
             case ',':
                 Serial.read();
@@ -360,7 +411,7 @@ void loop() {
 		{
 			applyTorquesForPosition(x, y, z);
 		}
-		control.CheckOverspeed(0.8);
+		//control.CheckOverspeed(1.2);
         //pidCalculate(1,1,1);
     }
 }

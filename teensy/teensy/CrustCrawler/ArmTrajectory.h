@@ -19,13 +19,15 @@ public:
 	array<array<double, 3>, 3> calculate();
 	array<array<double, 3>, 3> calculateContinousMove();
 
+	array<array<double, 3>, 3> output; //1st index: servo#; 2nd index: angle, speed, acc
 	bool goalReachedFlag = 0;
 	bool continousMoveFlag = 0;
+
+	double time = 2500;
 
 private:
 	array<double, 3> goalAngles, goalSpeeds, goalAccelerations, startAngles;
 	double startTime, desiredTime;
-	array<array<double, 3>, 3> output; //1st index: servo#; 2nd index: angle, speed, acc
 	array<double, 3> tb;
 	bool newGoalFlag = 0;
 	double measureRateTempTime, measureRateTempCounter;

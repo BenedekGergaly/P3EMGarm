@@ -29,7 +29,8 @@
 #include "servo.h"
 #include "CrustCrawler/ArmKinematics.h"
 #include "CrustCrawler/ArmControl.h"
-#include "CrustCrawler\ArmTrajectory.h"
+#include "CrustCrawler/ArmTrajectory.h"
+#include "CrustCrawler/ArmDynamics.h"
 
 using namespace std;
 
@@ -48,6 +49,7 @@ servo dxl;
 ArmKinematics kinematics;
 ArmControl control;
 ArmTrajectory trajectory;
+ArmDynamics dynamics;
 
 void debug()
 {
@@ -150,6 +152,17 @@ void applyTorquesForPosition(double x, double y, double z)
 	//Serial.print(", ");
 	//Serial.println(signal3);
 	Serial.println("=================");
+}
+
+void testDynamics(double joint1, double joint2, double joint3)
+{
+	array<double, 3> feedbackPosition = control.ReadPositionRadArray();
+	array<double, 3> feedbackVelocity = control.ReadVelocityRadArray();
+	array<double, 3> desiredAngles = { joint1, joint2, joint3 };
+	array<double, 3> speeds = { 0, 0, 0 };
+	array<double, 3> accs = { 0, 0, 0 };
+	auto outputTorque = dynamics.ComputeOutputTorque(accs, feedbackPosition, feedbackVelocity);
+	control.SendTorquesAllInOne(outputTorque);
 }
 
 void updatePIDvalue(int joint, char letter, int value)
@@ -383,6 +396,9 @@ void loop() {
 				trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 3000);
 				break;
 			}
+			case 'h':
+				testDynamics(0, 0, 0);
+				break;
 			case 'd':
 				debug();
 				break;

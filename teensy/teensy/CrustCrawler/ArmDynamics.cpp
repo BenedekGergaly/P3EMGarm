@@ -3,9 +3,10 @@
 // 
 
 #include "ArmDynamics.h"
-void ArmDynamics::addGravity(const double theta[3], double tau[3]) {
+void ArmDynamics::addGravity(const double theta[3], double tau[3]) 
+{
 	tau[0] += 0;
-	tau[1] += g * (-sin(theta[1])*l[1] * m[2] - sin(theta[1]) * lc[1] * m[1] - sin(theta[1] + theta[2]) * lc[2] * m[2]);
+	tau[1] += g * (-sin(theta[1]) * l[1] * m[2] - sin(theta[1]) * lc[1] * m[1] - sin(theta[1] + theta[2]) * lc[2] * m[2]);
 	tau[2] += g * lc[2] * m[2] * -sin(theta[1] + theta[2]);
 }
 
@@ -106,7 +107,7 @@ void ArmDynamics::addVelocity(const double theta[3], const double dTheta[3], dou
 	tau[2] += C[i_31] * v1v1 + C[i_32] * v2v2 + C[i_33] * v3v3;
 
 	// add Friction
-	addFriction(dTheta, tau);
+	//addFriction(dTheta, tau);
 }
 
 void ArmDynamics::addFriction(const double dTheta[3], double tau[3]) {

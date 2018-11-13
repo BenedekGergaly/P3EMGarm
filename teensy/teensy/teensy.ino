@@ -44,6 +44,7 @@ int cycleTime;
 unsigned long timer = 0;
 double x, y, z;
 bool runControlLoop = false;
+bool testDynamicsFlag = 0;
 
 servo dxl;
 ArmKinematics kinematics;
@@ -160,9 +161,15 @@ void testDynamics(double joint1, double joint2, double joint3)
 	array<double, 3> feedbackVelocity = control.ReadVelocityRadArray();
 	array<double, 3> desiredAngles = { joint1, joint2, joint3 };
 	array<double, 3> speeds = { 0, 0, 0 };
-	array<double, 3> accs = { 0, 0, 0 };
+	array<double, 3> accs = { 0, 0, -0 };
 	auto outputTorque = dynamics.ComputeOutputTorque(accs, feedbackPosition, feedbackVelocity);
 	control.SendTorquesAllInOne(outputTorque);
+	Serial.print("output torques: ");
+	Serial.print(outputTorque[0]);
+	Serial.print("   ");
+	Serial.print(outputTorque[1]);
+	Serial.print("   ");
+	Serial.println(outputTorque[2]);
 }
 
 void updatePIDvalue(int joint, char letter, int value)
@@ -397,7 +404,16 @@ void loop() {
 				break;
 			}
 			case 'h':
-				testDynamics(0, 0, 0);
+				dxl.torqueEnable(1, 0);
+				dxl.torqueEnable(2, 0);
+				dxl.torqueEnable(3, 0);
+				dxl.setOperatingMode(1, 0);
+				dxl.setOperatingMode(2, 0);
+				dxl.setOperatingMode(3, 0);
+				//dxl.torqueEnable(1, 1);
+				dxl.torqueEnable(2, 1);
+				dxl.torqueEnable(3, 1);
+				testDynamicsFlag = 1;
 				break;
 			case 'd':
 				debug();
@@ -426,6 +442,10 @@ void loop() {
 		if (runControlLoop)
 		{
 			applyTorquesForPosition(x, y, z);
+		}
+		if (testDynamicsFlag)
+		{
+			testDynamics(0, 0, 0);
 		}
 		//control.CheckOverspeed(1.2);
         //pidCalculate(1,1,1);

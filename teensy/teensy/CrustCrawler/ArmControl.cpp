@@ -146,3 +146,14 @@ void ArmControl::SoftEstop()
 	}
 	Serial.println("[INFO] Control: SoftEstop has been called");
 }
+
+void ArmControl::LogArray(String text, array<double, 3> data)
+{
+	Serial.print(text);
+	Serial.print(": ");
+	Serial.print(data[0]);
+	Serial.print("   ");
+	Serial.print(data[1]);
+	Serial.print("   ");
+	Serial.println(data[2]);
+}

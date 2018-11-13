@@ -15,7 +15,7 @@ array<double, 3> ArmDynamics::ComputeOutputTorque(array<double, 3> controlAccele
 	double tau[3] = { 0, 0, 0 };
 
 	addInertia(thetaFeedback.data(), controlAccelerations.data(), tau);
-	//addVelocity(thetaFeedback.data(), dThetaFeedback.data(), tau);
+	addVelocity(thetaFeedback.data(), dThetaFeedback.data(), tau);
     addGravity(thetaFeedback.data(), tau);
 	//tau[2] *= 4;
 

@@ -34,10 +34,12 @@
 
 using namespace std;
 
-int pose = 0;
+int pose = 0; //rest, waveIn, waveOut, fist, fingerSpread, doubleTap
 int pid[3][3];
 int previousError[3];
 int integral[3];
+int currentControlAxis = 1; //1, 2, 3 = x, y, z mode
+bool gripperState = 0;
 
 int cycleFrequency;
 int cycleTime;
@@ -93,23 +95,9 @@ void applyTorquesForPosition(double x, double y, double z)
 
 	array<double, 3> feedbackPosition = control.ReadPositionRadArray();
 	array<double, 3> feedbackVelocity = control.ReadVelocityRadArray();
-	Serial.print(angles[0]);
-	Serial.print(", ");
-	Serial.print(angles[1]);
-	Serial.print(", ");
-	Serial.println(angles[2]);
-	Serial.print("Feedback pos: ");
-	Serial.print(feedbackPosition[0]);
-	Serial.print(", ");
-	Serial.print(feedbackPosition[1]);
-	Serial.print(", ");
-	Serial.println(feedbackPosition[2]);
-	Serial.print("Feedback vel: ");
-	Serial.print(feedbackVelocity[0]);
-	Serial.print(", ");
-	Serial.print(feedbackVelocity[1]);
-	Serial.print(", ");
-	Serial.println(feedbackVelocity[2]);
+	control.LogArray("kinematic solution", angles);
+	control.LogArray("Current position", feedbackPosition);
+	control.LogArray("Current velocity", feedbackVelocity);
 
 	array<array<double, 3>, 3> inputs = trajectory.calculate();
 	array<double, 3> desiredAngles;
@@ -123,12 +111,7 @@ void applyTorquesForPosition(double x, double y, double z)
 	}
 
 	array<double, 3> torques = control.ComputeControlTorque(desiredAngles, speeds, accs, feedbackPosition, feedbackVelocity);
-	Serial.print("Torques: ");
-	Serial.print(torques[0]);
-	Serial.print(", ");
-	Serial.print(torques[1]);
-	Serial.print(", ");
-	Serial.println(torques[2]);
+	control.LogArray("Torques", torques);
 
 	control.SendTorquesAllInOne(torques);
 	//double current1 = control.ComputeOutputCurrent(torques[0], ServoType::MX106);
@@ -225,7 +208,7 @@ int pidCalculate(int joint, int desired, int actual)
 
 void gripper(bool b)
 {
-    if(b == 0)
+	if (b == 0 && gripperState == 1)
     {
 
         dxl.torqueEnable(4,0);
@@ -236,9 +219,9 @@ void gripper(bool b)
         dxl.torqueEnable(5,1);
         dxl.setGoalPosition(4,2600);
         dxl.setGoalPosition(5,3200);
-
+		gripperState = 0;
     }
-    else
+	else if (b == 1 && gripperState == 0)
     {
         dxl.torqueEnable(4,0);
         dxl.torqueEnable(5,0);
@@ -246,8 +229,9 @@ void gripper(bool b)
         dxl.setOperatingMode(5,16);
         dxl.torqueEnable(4,1);
         dxl.torqueEnable(5,1);
-        dxl.setGoalPwm(4, -300);
-        dxl.setGoalPwm(5, -300);
+		dxl.setGoalPwm(4, -150);
+		dxl.setGoalPwm(5, -150);
+		gripperState = 1;
     }
 }
 
@@ -427,6 +411,25 @@ void loop() {
                 break;
         }
     }
+
+	switch (pose)
+	{
+	case 5:
+		currentControlAxis += 1;
+		if (currentControlAxis == 4) currentControlAxis = 1;
+		pose = 0;
+		break;
+	case 3:
+		gripper(1);
+		pose = 0;
+		break;
+	case 4:
+		gripper(0);
+		pose = 0;
+		break;
+	default:
+		break;
+	}
 
     if(micros()-timer > cycleTime)
     {

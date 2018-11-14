@@ -1,5 +1,6 @@
 #include "SerialPort.h"
 #include <string>
+#include <iostream>
 
 SerialPort::SerialPort(char *portName)
 {
@@ -28,7 +29,7 @@ SerialPort::SerialPort(char *portName)
 			printf("failed to get current serial parameters\n");
 		}
 		else {
-			dcbSerialParameters.BaudRate = CBR_115200;
+			dcbSerialParameters.BaudRate = CBR_9600;
 			dcbSerialParameters.ByteSize = 8;
 			dcbSerialParameters.StopBits = ONESTOPBIT;
 			dcbSerialParameters.Parity = NOPARITY;
@@ -58,7 +59,8 @@ SerialPort::~SerialPort()
 char* stringConverter(std::string input)
 {
 	const char* temp = input.c_str();
-	return (char*)temp;
+	char* out = strdup(temp);
+	return out;
 }
 
 int SerialPort::readSerialPort(char *buffer, unsigned int buf_size)
@@ -85,7 +87,7 @@ bool SerialPort::writeSerialPort(std::string input)
 {
 	DWORD bytesSend;
 	char* buffer = stringConverter(input);
-	if (!WriteFile(this->handler, (void*)buffer, 64, &bytesSend, 0)) {
+	if (!WriteFile(this->handler, (void*)buffer, 8, &bytesSend, 0)) {
 		ClearCommError(this->handler, &this->errors, &this->status);
 		return false;
 	}

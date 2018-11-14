@@ -119,12 +119,12 @@ int main(int argc, char** argv)
 		if (collector.pose != "")
 		{
 			std::string command;
-			if (collector.pose == "rest") command = "a0,";
-			if (collector.pose == "waveIn") command = "a1,";
-			if (collector.pose == "waveOut") command = "a2,";
-			if (collector.pose == "fist") command = "a3,";
-			if (collector.pose == "fingersSpread") command = "a4,";
-			if (collector.pose == "doubleTap") command = "a5,";
+			if (collector.pose == "rest") command = "a0";
+			if (collector.pose == "waveIn") command = "a1";
+			if (collector.pose == "waveOut") command = "a2";
+			if (collector.pose == "fist") command = "a3";
+			if (collector.pose == "fingersSpread") command = "a4";
+			if (collector.pose == "doubleTap") command = "a5";
 
 			teensy.writeSerialPort(command);
 			std::cout << "sent: " << command << std::endl;

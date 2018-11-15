@@ -14,9 +14,9 @@ array<double, 3> ArmControl::ComputeControlTorque(array<double, 3> thetaDesired,
 	array<double, 3> computedAcceleration;
 	for (int i = 0; i < 3; i++)
 	{
-		computedAcceleration[i] = (thetaDesired[i] - thetaFeedback[i]) * KP + (dThetaDesired[i] - dThetaFeedback[i]) * KV + ddThetaDesired[i];
+		computedAcceleration[i] = (thetaDesired[i] - thetaFeedback[i]) * kpTemp + (dThetaDesired[i] - dThetaFeedback[i]) * kvTemp + ddThetaDesired[i];
 	}
-
+	LogArray("computed acceleration", computedAcceleration);
 	//Some stuff here from the dynamics calculating the torque
 	array<double, 3> torque = dynamics.ComputeOutputTorque(computedAcceleration, thetaFeedback, dThetaFeedback); 
 

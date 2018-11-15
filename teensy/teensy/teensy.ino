@@ -100,9 +100,9 @@ void applyTorquesForPosition(double x, double y, double z)
 	control.LogArray("Current velocity", feedbackVelocity);
 
 	array<array<double, 3>, 3> inputs = trajectory.calculate();
-	array<double, 3> desiredAngles;
-	array<double, 3> speeds;
-	array<double, 3> accs;
+	array<double, 3> desiredAngles = {0, 1.57, -1.57};
+	array<double, 3> speeds = {0,0,0};
+	array<double, 3> accs = {0,20,0};
 	for (int i = 0; i < 3; i++)
 	{
 		desiredAngles[i] = inputs[i][0];
@@ -143,8 +143,8 @@ void testDynamics(double joint1, double joint2, double joint3)
 	array<double, 3> feedbackPosition = control.ReadPositionRadArray();
 	array<double, 3> feedbackVelocity = control.ReadVelocityRadArray();
 	array<double, 3> desiredAngles = { joint1, joint2, joint3 };
-	array<double, 3> speeds = { 0, 0, 0 };
-	array<double, 3> accs = { 0, 0, -0 };
+	array<double, 3> speeds = { 0, 1, -2 };
+	array<double, 3> accs = { 0, 10, -20 };
 	auto outputTorque = dynamics.ComputeOutputTorque(accs, feedbackPosition, feedbackVelocity);
 	control.SendTorquesAllInOne(outputTorque);
 	Serial.print("output torques: ");
@@ -194,6 +194,10 @@ void printPIDvalues()
     }
     Serial.print("Frequency: ");
     Serial.println(cycleFrequency);
+	Serial.print("kp, kv: ");
+	Serial.print(control.kpTemp);
+	Serial.print("   ");
+	Serial.println(control.kvTemp);
 }
 
 int pidCalculate(int joint, int desired, int actual)
@@ -255,6 +259,8 @@ void setup()
 
     EEPROM.get(100,cycleFrequency);
     cycleTime = 1000000/cycleFrequency; //in microsec
+	EEPROM.get(200, control.kpTemp);
+	EEPROM.get(300, control.kvTemp);
 
     for (int i=0;i<5;i++)
     {
@@ -268,6 +274,7 @@ void setup()
     dxl.setOperatingMode(5, 16);
     dxl.torqueEnable(4, 1);
     dxl.torqueEnable(5, 1);
+	Serial.println("INITIALIZED");
 }
 
 void loop() {
@@ -342,24 +349,34 @@ void loop() {
                 break;
                 }
             case 'w': //goal pwm
-                {
+            {
                 int id = Serial.parseInt();
                 Serial.read();
                 int data = Serial.parseInt();
                 dxl.setGoalPwm(id, data);
                 break;
-                }
+            }
             case 'b': //grip 0=open 1=close
                 gripper(Serial.parseInt());
                 break;
-            case 'n': //RX dump
-                Serial.print("RX dump: ");
-                dxl.dumpPackage(dxl.rx_buffer);
-                break;
-            case 'm': //TX dump
-                Serial.print("TX dump: ");
-                dxl.dumpPackage(dxl.tx_buffer);
-                break;
+            case 'n':
+			{
+				double temp = Serial.parseFloat();
+				Serial.print("new kp is: ");
+				Serial.println(temp);
+				EEPROM.put(200, temp);
+				control.kpTemp = temp;
+				break;
+			}
+            case 'm':
+			{
+				double temp = Serial.parseFloat();
+				Serial.print("new kv is: ");
+				Serial.println(temp);
+				EEPROM.put(300, temp);
+				control.kvTemp = temp;
+				break;
+			}
 			case 'k': //Kinematic position
 			{
 				//x = Serial.parseFloat();
@@ -374,14 +391,14 @@ void loop() {
 				dxl.torqueEnable(2, 0);
 				dxl.torqueEnable(3, 0);
 				dxl.setOperatingMode(1, 0);
-				dxl.setOperatingMode(2, 3);
+				dxl.setOperatingMode(2, 0);
 				dxl.setOperatingMode(3, 0);
 				//dxl.torqueEnable(1, 1);
 				dxl.torqueEnable(2, 1);
 				dxl.torqueEnable(3, 1);
 				runControlLoop = true;
-				array<double, 3> desiredAngles = {0,0,0};
-				array<double, 3> desiredAccelerations = {0,0,1};
+				array<double, 3> desiredAngles = {0,-1.57,1.57};
+				array<double, 3> desiredAccelerations = {0,1,1};
 				array<double, 3> currentAngles = control.ReadPositionRadArray();
 				Serial.println(currentAngles[2]);
 				trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 3000);
@@ -442,9 +459,14 @@ void loop() {
             Serial.println(" Hz");
         }
         timer = micros();
-		if (runControlLoop)
+		if (runControlLoop && trajectory.goalReachedFlag == 0)
 		{
 			applyTorquesForPosition(x, y, z);
+		}
+		if (runControlLoop && trajectory.goalReachedFlag == 1)
+		{
+			control.SoftEstop();
+			runControlLoop = 0;
 		}
 		if (testDynamicsFlag)
 		{

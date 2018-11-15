@@ -29,8 +29,8 @@ private:
 	void getCoriolis(const double theta[3], double B[9]);
 	void getCentrifugal(const double theta[3], double C[9]);
 	void addInertia(const double theta[3], const double ddTheta[3], double tau[3]);
-	void addVelocity(const double theta[3], const double dtheta[3], double tau[3]);
-	void addFriction(const double dtheta[3], double tau[3]);
+	void addVelocity(const double theta[3], const double dTheta[3], double tau[3]);
+	void addFriction(const double dTheta[3], double tau[3]);
 	void addGravity(const double theta[3], double tau[3]);
 };
 

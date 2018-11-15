@@ -105,6 +105,28 @@ void ArmTrajectory::stopContinousMove()
 	continousMoveFlag = 0;
 }
 
+void ArmTrajectory::startContinousCartesianMove(array<double, 3> cartesianSpeedT)
+{
+	continousMoveFlag = 1;
+	goalReachedFlag = 0;
+	cartesianSpeed = cartesianSpeedT;
+	startTime = secsDouble();
+	measureRateTempCounter = 0;
+	for (int i = 0; i < 3; i++)
+	{
+		output[i][0] = control.ReadPositionRad(i+1);
+		output[i][1] = 0;
+		output[i][2] = 0;
+	}
+	angles = control.ReadPositionRadArray();
+	cartesianPosition = kinematics.ForwardKinematics(control.ReadPositionRad(1), control.ReadPositionRad(2), control.ReadPositionRad(3)).getArray();
+}
+
+void ArmTrajectory::stopContinousCartesianMove()
+{
+	continousMoveFlag = 0;
+}
+
 array<array<double, 3>, 3> ArmTrajectory::calculateContinousMove()
 {
 	if (measureRateTempCounter == 0)
@@ -169,8 +191,54 @@ array<array<double, 3>, 3> ArmTrajectory::calculateContinousMove()
 	return output;
 }
 
+array<array<double, 3>, 3> ArmTrajectory::calculateContinousCartesianMove()
+{
+	if (measureRateTempCounter == 0)
+	{
+		measureRateTempTime = secsDouble();
+		measureRateTempCounter++;
+	}
+	else if (measureRateTempCounter == 1)
+	{
+		currentRate = secsDouble() - measureRateTempTime;
+		measureRateTempCounter = -1;
+	}
+	else if(continousMoveFlag == 1)
+	{
+		for (int i = 0; i < 3; i++)
+		{
+			cartesianDifference[i] = cartesianPosition[i] + cartesianSpeed[i] * (secsDouble() - startTime);
+			cartesianPositionNew[i] += cartesianDifference[i];
+		}
+		array<double, 3> anglesNew = kinematics.InverseKinematics(arrayToPoint(cartesianPositionNew)).SolutionOne;
+		bool overspeedFlag = 0;
+		for (int i = 0; i < 3; i++)
+		{
+			angleDifference[i] = anglesNew[i] - angles[i];
+			if (angleDifference[i] / currentRate > maxJointSpeed) overspeedFlag = 1;
+		}
+	}
+	else if (continousMoveFlag == 0 && goalReachedFlag == 0)
+	{
+
+	}
+	return output;
+}
+
 double ArmTrajectory::millisDouble()
 {
 	return (double)millis();
 	//return time;
 }
+
+double ArmTrajectory::secsDouble()
+{
+	return millisDouble()/1000;
+}
+
+Point3D<double> ArmTrajectory::arrayToPoint(array<double, 3> a)
+{
+	return Point3D<double>(a[0], a[1], a[2]);
+}
+
+

@@ -4,6 +4,9 @@
 #define _POINT3D_h
 
 #include "math.h"
+#include <array>
+
+using namespace std;
 
 template <typename T>
 class Point3D
@@ -17,6 +20,7 @@ public:
 	T getZ();
 	void SetPoint(T x, T y, T z);
 	T Magnitude();
+	array<T, 3> getArray();
 private:
 	T x;
 	T y;
@@ -67,6 +71,13 @@ template<typename T>
 T Point3D<T>::Magnitude()
 {
 	return (T)sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2));
+}
+
+template<typename T>
+inline array<T, 3> Point3D<T>::getArray()
+{
+	array<T, 3> o = { x,y,z };
+	return o;
 }
 
 template<typename T>

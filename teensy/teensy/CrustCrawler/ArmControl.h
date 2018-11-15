@@ -36,6 +36,8 @@ public:
 	bool CheckOverspeed(double speedLimit);
 	void SoftEstop();
 	void LogArray(String text, array<double, 3> data);
+
+	double kpTemp, kvTemp;
 private:
 	const double KV = 6.5;
 	const double KP = 10.56;

@@ -34,5 +34,6 @@ private:
 	double currentRate;
 	double millisDouble();
 	ArmControl control;
+	double tempTime;
 };
 

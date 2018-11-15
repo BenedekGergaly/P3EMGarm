@@ -47,6 +47,11 @@ unsigned long timer = 0;
 double x, y, z;
 bool runControlLoop = false;
 bool testDynamicsFlag = 0;
+int phase = 1;
+
+array<double, 3> desiredAngles;
+array<double, 3> desiredAccelerations;
+array<double, 3> currentAngles;
 
 servo dxl;
 ArmKinematics kinematics;
@@ -83,19 +88,19 @@ void debug()
 
 void applyTorquesForPosition(double x, double y, double z)
 {
-	Serial.print("XYZ: ");
-	Serial.print(x);
-	Serial.print(", ");
-	Serial.print(y);
-	Serial.print(", ");
-	Serial.println(z);
+	//Serial.print("XYZ: ");
+	//Serial.print(x);
+	//Serial.print(", ");
+	//Serial.print(y);
+	//Serial.print(", ");
+	//Serial.println(z);
 
 	auto point = Point3D<double>(x, y, z);
 	auto angles = kinematics.InverseKinematics(point).SolutionOne;
 
 	array<double, 3> feedbackPosition = control.ReadPositionRadArray();
 	array<double, 3> feedbackVelocity = control.ReadVelocityRadArray();
-	control.LogArray("kinematic solution", angles);
+	//control.LogArray("kinematic solution", angles);
 	control.LogArray("Current position", feedbackPosition);
 	control.LogArray("Current velocity", feedbackVelocity);
 
@@ -397,11 +402,7 @@ void loop() {
 				dxl.torqueEnable(2, 1);
 				dxl.torqueEnable(3, 1);
 				runControlLoop = true;
-				array<double, 3> desiredAngles = {0,-1.57,1.57};
-				array<double, 3> desiredAccelerations = {0,1,1};
-				array<double, 3> currentAngles = control.ReadPositionRadArray();
-				Serial.println(currentAngles[2]);
-				trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 3000);
+				trajectory.goalReachedFlag = 1;
 				break;
 			}
 			case 'h':
@@ -418,6 +419,9 @@ void loop() {
 				break;
 			case 'd':
 				debug();
+				break;
+			case 's':
+				control.SoftEstop();
 				break;
             case ',':
                 Serial.read();
@@ -459,14 +463,45 @@ void loop() {
             Serial.println(" Hz");
         }
         timer = micros();
+		if (trajectory.goalReachedFlag)
+		{
+			switch (phase)
+			{
+			case 1:
+				desiredAngles = { 0,-1.57,1.57 };
+				desiredAccelerations = { 0,1,1 };
+				currentAngles = control.ReadPositionRadArray();
+				Serial.println(currentAngles[2]);
+				trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 3000);
+				phase += 1;
+				break;
+			case 2:
+				desiredAngles = { 0,1.57,-1.57 };
+				desiredAccelerations = { 0,1,1 };
+				currentAngles = control.ReadPositionRadArray();
+				Serial.println(currentAngles[2]);
+				trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 5000);
+				phase += 1;
+				break;
+			case 3:
+				desiredAngles = { 0,0,1.57 };
+				desiredAccelerations = { 0,1,1 };
+				currentAngles = control.ReadPositionRadArray();
+				Serial.println(currentAngles[2]);
+				trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 3000);
+				phase = 1;
+				break;
+			}
+		}
+
 		if (runControlLoop && trajectory.goalReachedFlag == 0)
 		{
 			applyTorquesForPosition(x, y, z);
 		}
 		if (runControlLoop && trajectory.goalReachedFlag == 1)
 		{
-			control.SoftEstop();
-			runControlLoop = 0;
+			//control.SoftEstop();
+			//runControlLoop = 0;
 		}
 		if (testDynamicsFlag)
 		{

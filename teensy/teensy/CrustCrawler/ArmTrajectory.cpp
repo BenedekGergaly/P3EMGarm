@@ -21,6 +21,7 @@ void ArmTrajectory::setNewGoal(array<double, 3> currentAngles, array<double, 3> 
 	startAngles = currentAngles;
 	desiredTime = desiredTimeT/1000;
 	startTime = millisDouble()/1000;
+	measureRateTempCounter = 0;
 	for (int i = 0; i < 3; i++)
 	{
 		if (goalAngles[i] - startAngles[i] < 0 && goalAccelerations[i] > 0)
@@ -37,7 +38,11 @@ void ArmTrajectory::setNewGoal(array<double, 3> currentAngles, array<double, 3> 
 			Serial.println("Aborting!");
 			control.SoftEstop();
 		}
+		output[i][0] = control.ReadPositionRad(i + 1);
+		output[i][1] = 0;
+		output[i][2] = 0;
 	}
+	tempTime = millisDouble();
 }
 
 
@@ -46,7 +51,7 @@ array<array<double, 3>, 3> ArmTrajectory::calculate()
 	goalReachedFlag = 0;
 	for (int i = 0; i < 3; i++)
 	{
-		output[i][0] = goalAngles[i];
+		output[i][0] += output[i][1] * ((millisDouble()-tempTime)/1000);
 		if (millisDouble()/1000 - startTime < tb[i]) //start curve
 		{
 			output[i][1] = goalAccelerations[i] * (millisDouble()/1000 - startTime);
@@ -80,6 +85,7 @@ array<array<double, 3>, 3> ArmTrajectory::calculate()
 	Serial.print(output[2][1]);
 	Serial.print("   ");
 	Serial.println(output[2][2]);
+	tempTime = millisDouble();
 	return output;
 }
 

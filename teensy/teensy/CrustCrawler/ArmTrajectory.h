@@ -43,12 +43,9 @@ private:
 	double millisDouble();
 	double secsDouble();
 	ArmControl control;
-<<<<<<< HEAD
 	double tempTime;
-=======
 	array<double, 3> cartesianSpeed, cartesianPosition, cartesianPositionNew, angles, angleDifference, cartesianDifference;
 	ArmKinematics kinematics;
 	Point3D<double> arrayToPoint(array<double, 3> a);
->>>>>>> master
 };
 

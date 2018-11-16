@@ -46,6 +46,26 @@ double ArmControl::ComputeOutputCurrent(double desiredTorque, ServoType servoTyp
 	}
 }
 
+double ArmControl::ComputeOutputPWM(double desiredTorque, ServoType servoType)
+{
+
+	switch (servoType)
+	{
+	case ServoType::MX64:
+		return lround(216.85*desiredTorque) + 16;
+	case ServoType::MX106:
+		return lround(125.48*desiredTorque) + 18;
+	default:
+		return 0.0;
+	}
+	//if (servo_id == 1)
+	//	pwm = lround(140.54*tau);
+	//else if (servo_id == 2)
+	//	pwm = lround(125.48*tau) + 18;
+	//else if (servo_id == 3)
+	//	pwm = lround(216.85*tau) + 16;
+}
+
 int16_t ArmControl::ConvertCurrentToSignalValue(double currentInAmps)
 {
 	double currentInMilliAmps = currentInAmps * 1000.0;
@@ -105,15 +125,21 @@ array<double, 3> ArmControl::ReadVelocityRadArray()
 
 void ArmControl::SendTorquesAllInOne(array<double, 3> torques)
 {
-	double current1 = ComputeOutputCurrent(torques[0], ServoType::MX106);
-	double current2 = ComputeOutputCurrent(torques[1], ServoType::MX106);
-	double current3 = ComputeOutputCurrent(torques[2], ServoType::MX64);
-	int16_t signal1 = ConvertCurrentToSignalValue(current1);
-	int16_t signal2 = ConvertCurrentToSignalValue(current2);
-	int16_t signal3 = ConvertCurrentToSignalValue(current3);
-	dxl.setGoalCurrent(1, signal1);
-	dxl.setGoalCurrent(2, signal2);
-	dxl.setGoalCurrent(3, signal3);
+	//double current1 = ComputeOutputCurrent(torques[0], ServoType::MX106);
+	//double current2 = ComputeOutputCurrent(torques[1], ServoType::MX106);
+	//double current3 = ComputeOutputCurrent(torques[2], ServoType::MX64);
+	//int16_t signal1 = ConvertCurrentToSignalValue(current1);
+	//int16_t signal2 = ConvertCurrentToSignalValue(current2);
+	//int16_t signal3 = ConvertCurrentToSignalValue(current3);
+	//dxl.setGoalCurrent(1, signal1);
+	//dxl.setGoalCurrent(2, signal2);
+	//dxl.setGoalCurrent(3, signal3);
+	double pwm1 = ComputeOutputPWM(torques[0], ServoType::MX106);
+	double pwm2 = ComputeOutputPWM(torques[1], ServoType::MX106);
+	double pwm3 = ComputeOutputPWM(torques[2], ServoType::MX64);
+	dxl.setGoalPwm(1, pwm1);
+	dxl.setGoalPwm(2, pwm2);
+	dxl.setGoalPwm(3, pwm3);
 }
 
 bool ArmControl::CheckOverspeed(double speedLimit)

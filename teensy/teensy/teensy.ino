@@ -279,6 +279,7 @@ void setup()
     dxl.setOperatingMode(5, 16);
     dxl.torqueEnable(4, 1);
     dxl.torqueEnable(5, 1);
+	control.SoftEstop();
 	Serial.println("INITIALIZED");
 }
 
@@ -395,9 +396,9 @@ void loop() {
 				dxl.torqueEnable(1, 0);
 				dxl.torqueEnable(2, 0);
 				dxl.torqueEnable(3, 0);
-				dxl.setOperatingMode(1, 0);
-				dxl.setOperatingMode(2, 0);
-				dxl.setOperatingMode(3, 0);
+				dxl.setOperatingMode(1, 16);
+				dxl.setOperatingMode(2, 16);
+				dxl.setOperatingMode(3, 16);
 				//dxl.torqueEnable(1, 1);
 				dxl.torqueEnable(2, 1);
 				dxl.torqueEnable(3, 1);
@@ -422,6 +423,7 @@ void loop() {
 				break;
 			case 's':
 				control.SoftEstop();
+				runControlLoop = 0;
 				break;
             case ',':
                 Serial.read();

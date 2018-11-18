@@ -35,7 +35,7 @@ void ArmTrajectory::setNewGoal(array<double, 3> currentAngles, array<double, 3> 
 		{
 			Serial.print("[ERROR] Trajectory: Tb is nan for servo #");
 			Serial.println(i+1);
-			Serial.println("Aborting!");
+			Serial.println("Acceleration too low or time too short! Aborting!");
 			Serial.println(desiredTime);
 			Serial.println(goalAccelerations[i]);
 			Serial.println(goalAngles[i]);

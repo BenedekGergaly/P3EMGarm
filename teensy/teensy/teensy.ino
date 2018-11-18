@@ -470,7 +470,7 @@ void loop() {
 			switch (phase)
 			{
 			case 1:
-				desiredAngles = { 0,-1.57,1.57 };
+				desiredAngles = { 0,0,1.57 };
 				desiredAccelerations = { 0,1,1 };
 				currentAngles = control.ReadPositionRadArray();
 				Serial.println(currentAngles[2]);
@@ -478,15 +478,15 @@ void loop() {
 				phase += 1;
 				break;
 			case 2:
-				desiredAngles = { 0,1.57,-1.57 };
+				desiredAngles = { 0,0,-1.57 };
 				desiredAccelerations = { 0,1,1 };
 				currentAngles = control.ReadPositionRadArray();
 				Serial.println(currentAngles[2]);
-				trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 5000);
+				trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 2000);
 				phase += 1;
 				break;
 			case 3:
-				desiredAngles = { 0,0,1.57 };
+				desiredAngles = { 0,0,0 };
 				desiredAccelerations = { 0,1,1 };
 				currentAngles = control.ReadPositionRadArray();
 				Serial.println(currentAngles[2]);

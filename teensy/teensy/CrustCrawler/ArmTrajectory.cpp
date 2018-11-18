@@ -31,12 +31,25 @@ void ArmTrajectory::setNewGoal(array<double, 3> currentAngles, array<double, 3> 
 		tb[i] = 0.5*desiredTime 
 			- abs((sqrt(pow(goalAccelerations[i], 2)*pow(desiredTime, 2) - (4 * goalAccelerations[i] * (goalAngles[i] - startAngles[i])))
 			/ (2 * goalAccelerations[i])));
+		if (isnan(tb[i]))
+		{
+			Serial.print("[ERROR] Trajectory: Tb is nan for servo #");
+			Serial.println(i+1);
+			Serial.println("Aborting!");
+			Serial.println(desiredTime);
+			Serial.println(goalAccelerations[i]);
+			Serial.println(goalAngles[i]);
+			Serial.println(startAngles[i]);
+			control.SoftEstop();
+			while (1);
+		}
 		if (tb[i] > desiredTime / 2)
 		{
 			Serial.print("[ERROR] Trajectory: Acceleration too low or time too short for trajectory generation for servo #");
-			Serial.println(i);
+			Serial.println(i+1);
 			Serial.println("Aborting!");
 			control.SoftEstop();
+			while (1);
 		}
 		output[i][0] = control.ReadPositionRad(i + 1);
 		output[i][1] = 0;
@@ -85,6 +98,7 @@ array<array<double, 3>, 3> ArmTrajectory::calculate()
 	Serial.print(output[2][1]);
 	Serial.print("   ");
 	Serial.println(output[2][2]);
+	Serial.println(tb[2]);
 	tempTime = millisDouble();
 	return output;
 }

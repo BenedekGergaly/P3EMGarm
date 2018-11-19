@@ -34,7 +34,7 @@
 
 using namespace std;
 
-int pose = 0; //rest, waveIn, waveOut, fist, fingerSpread, doubleTap
+int pose = -1; //rest, waveIn, waveOut, fist, fingerSpread, doubleTap
 int pid[3][3];
 int previousError[3];
 int integral[3];
@@ -440,16 +440,25 @@ void loop() {
 	case 5:
 		currentControlAxis += 1;
 		if (currentControlAxis == 4) currentControlAxis = 1;
-		pose = 0;
+		pose = -1;
 		break;
 	case 3:
 		gripper(1);
-		pose = 0;
+		pose = -1;
 		break;
 	case 4:
 		gripper(0);
-		pose = 0;
+		pose = -1;
 		break;
+	case 0:
+		trajectory.stopContinousMove();
+		break;
+	case 1:
+	{
+		array<double, 3> speeds = {};
+		array<double, 3> accs = {};
+		trajectory.startContinousMove();
+	}
 	default:
 		break;
 	}
@@ -465,32 +474,32 @@ void loop() {
             Serial.println(" Hz");
         }
         timer = micros();
-		if (trajectory.goalReachedFlag)
+		if (trajectory.goalReachedFlag && false)
 		{
 			switch (phase)
 			{
 			case 1:
-				desiredAngles = { 0,0,1.57 };
-				desiredAccelerations = { 0,1,2 };
+				desiredAngles = { 0,-1.57,1.57 };
+				desiredAccelerations = { 3,5,5 };
 				currentAngles = control.ReadPositionRadArray();
 				Serial.println(currentAngles[2]);
-				trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 3000);
+				trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 10000);
 				phase += 1;
 				break;
 			case 2:
-				desiredAngles = { 0,0,-1.57 };
-				desiredAccelerations = { 0,1,2 };
+				desiredAngles = { 0,0,0 };
+				desiredAccelerations = { 3,2,2 };
 				currentAngles = control.ReadPositionRadArray();
 				Serial.println(currentAngles[2]);
-				trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 5000);
+				trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 2000);
 				phase += 1;
 				break;
 			case 3:
-				desiredAngles = { 0,0,0 };
-				desiredAccelerations = { 0,1,2 };
+				desiredAngles = { 0,1.57,-1.57 };
+				desiredAccelerations = { 3,3,3 };
 				currentAngles = control.ReadPositionRadArray();
 				Serial.println(currentAngles[2]);
-				trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 3000);
+				trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 2000);
 				phase = 1;
 				break;
 			}

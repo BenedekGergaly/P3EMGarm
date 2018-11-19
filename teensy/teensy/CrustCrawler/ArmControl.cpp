@@ -52,9 +52,9 @@ double ArmControl::ComputeOutputPWM(double desiredTorque, ServoType servoType)
 	switch (servoType)
 	{
 	case ServoType::MX64:
-		return lround(216.85*desiredTorque) + 16;
+		return lround(216.85*desiredTorque);// +16;
 	case ServoType::MX106:
-		return lround(125.48*desiredTorque) + 18;
+		return lround(125.48*desiredTorque);// +18;
 	default:
 		return 0.0;
 	}

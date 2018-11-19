@@ -38,7 +38,7 @@ int pose = -1; //rest, waveIn, waveOut, fist, fingerSpread, doubleTap
 int pid[3][3];
 int previousError[3];
 int integral[3];
-int currentControlAxis = 1; //1, 2, 3 = x, y, z mode
+int currentControlAxis = 3; //1, 2, 3 = x, y, z mode
 bool gripperState = 0;
 
 int cycleFrequency;
@@ -46,12 +46,16 @@ int cycleTime;
 unsigned long timer = 0;
 double x, y, z;
 bool runControlLoop = false;
+bool runContinousControl = false;
 bool testDynamicsFlag = 0;
 int phase = 1;
 
 array<double, 3> desiredAngles;
 array<double, 3> desiredAccelerations;
 array<double, 3> currentAngles;
+
+array<double, 3> continousSpeeds = {0,0,0};
+array<double, 3> continousAccelerations = {0,0,0};
 
 servo dxl;
 ArmKinematics kinematics;
@@ -140,6 +144,32 @@ void applyTorquesForPosition(double x, double y, double z)
 	//Serial.print(signal2);
 	//Serial.print(", ");
 	//Serial.println(signal3);
+	Serial.println("=================");
+}
+
+void applyTorquesContinousMove()
+{
+	array<double, 3> feedbackPosition = control.ReadPositionRadArray();
+	array<double, 3> feedbackVelocity = control.ReadVelocityRadArray();
+	control.LogArray("Current position", feedbackPosition);
+	control.LogArray("Current velocity", feedbackVelocity);
+
+	array<array<double, 3>, 3> inputs = trajectory.calculateContinousMove();
+	array<double, 3> desiredAngles;
+	array<double, 3> speeds;
+	array<double, 3> accs;
+	for (int i = 0; i < 3; i++)
+	{
+		desiredAngles[i] = inputs[i][0];
+		speeds[i] = inputs[i][1];
+		accs[i] = inputs[i][2];
+	}
+	array<double, 3> torques = control.ComputeControlTorque(desiredAngles, speeds, accs, feedbackPosition, feedbackVelocity);
+	control.LogArray("Torques", torques);
+	control.LogArray("Angles", desiredAngles);
+	control.LogArray("speeds", speeds);
+	control.LogArray("accelerations", accs);
+	control.SendTorquesAllInOne(torques);
 	Serial.println("=================");
 }
 
@@ -410,13 +440,13 @@ void loop() {
 				dxl.torqueEnable(1, 0);
 				dxl.torqueEnable(2, 0);
 				dxl.torqueEnable(3, 0);
-				dxl.setOperatingMode(1, 0);
-				dxl.setOperatingMode(2, 0);
-				dxl.setOperatingMode(3, 0);
+				dxl.setOperatingMode(1, 16);
+				dxl.setOperatingMode(2, 16);
+				dxl.setOperatingMode(3, 16);
 				//dxl.torqueEnable(1, 1);
 				dxl.torqueEnable(2, 1);
 				dxl.torqueEnable(3, 1);
-				testDynamicsFlag = 1;
+				//testDynamicsFlag = 1;
 				break;
 			case 'd':
 				debug();
@@ -424,6 +454,7 @@ void loop() {
 			case 's':
 				control.SoftEstop();
 				runControlLoop = 0;
+				runContinousControl = 0;
 				break;
             case ',':
                 Serial.read();
@@ -454,11 +485,45 @@ void loop() {
 		trajectory.stopContinousMove();
 		break;
 	case 1:
-	{
-		array<double, 3> speeds = {};
-		array<double, 3> accs = {};
-		trajectory.startContinousMove();
-	}
+		runContinousControl = true;
+		pose = -1;
+		switch (currentControlAxis)
+		{
+		case 1:
+			continousSpeeds = { 0.3,0,0 };
+			continousAccelerations = { 2,0,0 };
+			break;
+		case 2:
+			continousSpeeds = { 0,0.3,0 };
+			continousAccelerations = { 0,2,0 };
+			break;
+		case 3:
+			continousSpeeds = { 0,0,0.3 };
+			continousAccelerations = { 0,0,2 };
+			break;
+		}
+		trajectory.startContinousMove(control.ReadPositionRadArray(), continousAccelerations, continousSpeeds);
+		break;
+	case 2:
+		pose = -1;
+		runContinousControl = true;
+		switch (currentControlAxis)
+		{
+		case 1:
+			continousSpeeds = { 0.3,0,0 };
+			continousAccelerations = { -2,0,0 };
+			break;
+		case 2:
+			continousSpeeds = { 0,0.3,0 };
+			continousAccelerations = { 0,-2,0 };
+			break;
+		case 3:
+			continousSpeeds = { 0,0,-0.3 };
+			continousAccelerations = { 0,0,-2 };
+			break;
+		}
+		trajectory.startContinousMove(control.ReadPositionRadArray(), continousAccelerations, continousSpeeds);
+		break;
 	default:
 		break;
 	}
@@ -517,6 +582,11 @@ void loop() {
 		if (testDynamicsFlag)
 		{
 			testDynamics(0, 0, 0);
+		}
+
+		if (runContinousControl)
+		{
+			applyTorquesContinousMove();
 		}
 		//control.CheckOverspeed(1.2);
         //pidCalculate(1,1,1);

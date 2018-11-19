@@ -164,7 +164,7 @@ array<array<double, 3>, 3> ArmTrajectory::calculateContinousMove()
 		for (int i = 0; i < 3; i++)
 		{
 			output[i][0] = output[i][0] + (output[i][1] * currentRate);
-			if (output[i][1] < goalSpeeds[i])
+			if (abs(output[i][1]) < abs(goalSpeeds[i]))
 			{
 				output[i][1] = (millisDouble() / 1000 - startTime) * goalAccelerations[i];
 				output[i][2] = goalAccelerations[i];
@@ -176,7 +176,7 @@ array<array<double, 3>, 3> ArmTrajectory::calculateContinousMove()
 		}
 		return output;
 	}
-	else if (continousMoveFlag == 0 && goalReachedFlag == 0)//end curve
+	else if (continousMoveFlag == 0 /*&& goalReachedFlag == 0*/)//end curve
 	{
 		int stopCheck = 0;
 		for (int i = 0; i < 3; i++)
@@ -230,7 +230,7 @@ array<array<double, 3>, 3> ArmTrajectory::calculateContinousMove()
 //			cartesianDifference[i] = cartesianPosition[i] + cartesianSpeed[i] * (secsDouble() - startTime);
 //			cartesianPositionNew[i] += cartesianDifference[i];
 //		}
-//		array<double, 3> anglesNew = kinematics.InverseKinematics(arrayToPoint(cartesianPositionNew)).SolutionOne;
+//		//array<double, 3> anglesNew = kinematics.InverseKinematics(arrayToPoint(cartesianPositionNew)).SolutionOne;
 //		bool overspeedFlag = 0;
 //		for (int i = 0; i < 3; i++)
 //		{
@@ -244,6 +244,41 @@ array<array<double, 3>, 3> ArmTrajectory::calculateContinousMove()
 //	}
 //	return output;
 //}
+
+void ArmTrajectory::setNewCartesianGoal(array<double, 3> goalPositionT, array<double, 3> cartesianSpeedT)
+{
+	cartesianGoalPosition = goalPositionT;
+	cartesianSpeed = cartesianSpeedT;
+	measureRateTempCounter = 0;
+}
+
+array<array<double, 3>, 3> ArmTrajectory::calculateCartesian()
+{
+	if (measureRateTempCounter == 0)
+	{
+		measureRateTempTime = secsDouble();
+		measureRateTempCounter++;
+	}
+	else if (measureRateTempCounter == 1)
+	{
+		currentRate = secsDouble() - measureRateTempTime;
+		measureRateTempCounter = -1;
+	}
+	else
+	{
+
+
+		return output;
+	}
+
+	for (int i = 0; i < 3; i++)
+	{
+		output[i][0] = 2;
+		output[i][1] = 0;
+		output[i][2] = 0;
+	}
+	return output;
+}
 
 double ArmTrajectory::millisDouble()
 {

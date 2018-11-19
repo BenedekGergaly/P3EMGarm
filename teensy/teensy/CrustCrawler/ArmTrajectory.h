@@ -25,6 +25,8 @@ public:
 	array<array<double, 3>, 3> calculate();
 	array<array<double, 3>, 3> calculateContinousMove();
 	array<array<double, 3>, 3> calculateContinousCartesianMove();
+	void setNewCartesianGoal(array<double, 3> goalPositionT, array<double, 3> cartesianSpeedT);
+	array<array<double, 3>, 3> calculateCartesian();
 
 
 	array<array<double, 3>, 3> output; //1st index: servo#; 2nd index: angle, speed, acc
@@ -44,7 +46,7 @@ private:
 	double secsDouble();
 	ArmControl control;
 	double tempTime;
-	array<double, 3> cartesianSpeed, cartesianPosition, cartesianPositionNew, angles, angleDifference, cartesianDifference;
+	array<double, 3> cartesianGoalPosition, cartesianSpeed, cartesianPosition, cartesianPositionNew, angles, angleDifference, cartesianDifference;
 	ArmKinematics kinematics;
 	Point3D<double> arrayToPoint(array<double, 3> a);
 };

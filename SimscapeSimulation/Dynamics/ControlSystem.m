@@ -9,15 +9,15 @@ ddThetaDesired = [inputs(7); inputs(8); inputs(9)];
 theta = [inputs(10); inputs(11); inputs(12)];
 dTheta = [inputs(13); inputs(14); inputs(15)];
 
-kp = 484;
-kv = 40;
+omega_n = 4.5;
+kp = omega_n^2;
+kv = 2 * omega_n;
 
 accelerations = [0 0 0];
 
 for i = 1:3
     accelerations(i) = (thetaDesired(i) - theta(i)) * kp + (dThetaDesired(i) - dTheta(i)) * kv + ddThetaDesired(i);
 end
-
 
 y = accelerations; 
 end

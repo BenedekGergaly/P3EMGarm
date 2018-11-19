@@ -9,11 +9,8 @@ ddThetaDesired = [inputs(7); inputs(8); inputs(9)];
 theta = [inputs(10); inputs(11); inputs(12)];
 dTheta = [inputs(13); inputs(14); inputs(15)];
 
-kp = 18;
-kv = 8.5;
-
-%edit this
-
+kp = 484;
+kv = 40;
 
 accelerations = [0 0 0];
 

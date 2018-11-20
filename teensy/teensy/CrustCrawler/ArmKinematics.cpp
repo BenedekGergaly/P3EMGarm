@@ -1,5 +1,6 @@
 #include "ArmKinematics.h"
 
+
 ArmKinematics::ArmKinematics()
 {
 }

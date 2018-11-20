@@ -16,7 +16,6 @@ array<double, 3> ArmControl::ComputeControlTorque(array<double, 3> thetaDesired,
 	{
 		computedAcceleration[i] = (thetaDesired[i] - thetaFeedback[i]) * kpTemp + (dThetaDesired[i] - dThetaFeedback[i]) * kvTemp + ddThetaDesired[i];
 	}
-	LogArray("computed acceleration", computedAcceleration);
 	//Some stuff here from the dynamics calculating the torque
 	array<double, 3> torque = dynamics.ComputeOutputTorque(computedAcceleration, thetaFeedback, dThetaFeedback); 
 
@@ -125,15 +124,22 @@ array<double, 3> ArmControl::ReadVelocityRadArray()
 
 void ArmControl::SendTorquesAllInOne(array<double, 3> torques)
 {
-	//double current1 = ComputeOutputCurrent(torques[0], ServoType::MX106);
-	//double current2 = ComputeOutputCurrent(torques[1], ServoType::MX106);
-	//double current3 = ComputeOutputCurrent(torques[2], ServoType::MX64);
-	//int16_t signal1 = ConvertCurrentToSignalValue(current1);
-	//int16_t signal2 = ConvertCurrentToSignalValue(current2);
-	//int16_t signal3 = ConvertCurrentToSignalValue(current3);
-	//dxl.setGoalCurrent(1, signal1);
-	//dxl.setGoalCurrent(2, signal2);
-	//dxl.setGoalCurrent(3, signal3);
+	int stopFlag = false;
+	for (int i = 0; i < 3; i++)
+	{
+		if (abs(torques[i]) > 10)
+		{
+			Serial.print("[ERROR] Control: Overtorque on servo #");
+			Serial.println(i + 1);
+			stopFlag = 1;
+		}
+	}
+	if (stopFlag)
+	{
+		SoftEstop();
+		Serial.println("Aborting!");
+		while (1);
+	}
 	double pwm1 = ComputeOutputPWM(torques[0], ServoType::MX106);
 	double pwm2 = ComputeOutputPWM(torques[1], ServoType::MX106);
 	double pwm3 = ComputeOutputPWM(torques[2], ServoType::MX64);

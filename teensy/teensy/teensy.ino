@@ -47,6 +47,7 @@ unsigned long timer = 0;
 double x, y, z;
 bool runControlLoop = false;
 bool runContinousControl = false;
+bool runCartesian = false;
 bool testDynamicsFlag = 0;
 int phase = 1;
 
@@ -169,6 +170,32 @@ void applyTorquesContinousMove()
 	control.LogArray("Angles", desiredAngles);
 	control.LogArray("speeds", speeds);
 	control.LogArray("accelerations", accs);
+	control.SendTorquesAllInOne(torques);
+	Serial.println("=================");
+}
+
+void applyTorquesCartesian()
+{
+	array<double, 3> feedbackPosition = control.ReadPositionRadArray();
+	array<double, 3> feedbackVelocity = control.ReadVelocityRadArray();
+	control.LogArray("Current position", feedbackPosition);
+	control.LogArray("Current velocity", feedbackVelocity);
+
+	array<array<double, 3>, 3> inputs = trajectory.calculateCartesian();
+	array<double, 3> desiredAngles;
+	array<double, 3> speeds;
+	array<double, 3> accs;
+	for (int i = 0; i < 3; i++)
+	{
+		desiredAngles[i] = inputs[i][0];
+		speeds[i] = inputs[i][1];
+		accs[i] = inputs[i][2];
+	}
+	array<double, 3> torques = control.ComputeControlTorque(desiredAngles, speeds, accs, feedbackPosition, feedbackVelocity);
+	control.LogArray("Angles", desiredAngles);
+	control.LogArray("Speeds", speeds);
+	control.LogArray("Accelerations", accs);
+	control.LogArray("Torques", torques);
 	control.SendTorquesAllInOne(torques);
 	Serial.println("=================");
 }
@@ -321,14 +348,6 @@ void loop() {
             case 'a': //pose input
                 pose = Serial.parseInt();
                 break;
-            case 'j': //update pid value j2p123
-                {
-                int joint = Serial.parseInt();
-                char pid = Serial.read();
-                int value = Serial.parseInt();
-                updatePIDvalue(joint-1, pid, value);
-                break;
-                }
             case 'r': //retrieve pid values
                 printPIDvalues();
                 break;
@@ -359,15 +378,6 @@ void loop() {
                 Serial.println(position);
                 break;
                 }
-            case 'c': //set goal current
-                {
-                int id = Serial.parseInt();
-                Serial.read();
-                int current = Serial.parseInt();
-                Serial.println(dxl.setGoalCurrent(id, current));
-                Serial.println(current);
-                break;
-                }
             case 'o': //set operating mode 0=current, 3=position
                 {
                 int id = Serial.parseInt();
@@ -385,44 +395,36 @@ void loop() {
                 break;
                 }
             case 'w': //goal pwm
-            {
+				{
                 int id = Serial.parseInt();
                 Serial.read();
                 int data = Serial.parseInt();
                 dxl.setGoalPwm(id, data);
                 break;
-            }
+				}
             case 'b': //grip 0=open 1=close
                 gripper(Serial.parseInt());
                 break;
             case 'n':
-			{
+				{
 				double temp = Serial.parseFloat();
 				Serial.print("new kp is: ");
 				Serial.println(temp);
 				EEPROM.put(200, temp);
 				control.kpTemp = temp;
 				break;
-			}
+				}
             case 'm':
-			{
+				{
 				double temp = Serial.parseFloat();
 				Serial.print("new kv is: ");
 				Serial.println(temp);
 				EEPROM.put(300, temp);
 				control.kvTemp = temp;
 				break;
-			}
-			case 'k': //Kinematic position
-			{
-				//x = Serial.parseFloat();
-				x = -505;
-				//Serial.read();
-				//y = Serial.parseFloat();
-				y = 0;
-				//Serial.read();
-				//z = Serial.parseFloat();
-				z = 240;
+				}
+			case 'k':
+				{
 				dxl.torqueEnable(1, 0);
 				dxl.torqueEnable(2, 0);
 				dxl.torqueEnable(3, 0);
@@ -435,7 +437,7 @@ void loop() {
 				runControlLoop = true;
 				trajectory.goalReachedFlag = 1;
 				break;
-			}
+				}
 			case 'h':
 				dxl.torqueEnable(1, 0);
 				dxl.torqueEnable(2, 0);
@@ -446,8 +448,39 @@ void loop() {
 				//dxl.torqueEnable(1, 1);
 				dxl.torqueEnable(2, 1);
 				dxl.torqueEnable(3, 1);
-				//testDynamicsFlag = 1;
 				break;
+			case 'j':
+				{
+				dxl.torqueEnable(1, 0);
+				dxl.torqueEnable(2, 0);
+				dxl.torqueEnable(3, 0);
+				dxl.setOperatingMode(1, 16);
+				dxl.setOperatingMode(2, 16);
+				dxl.setOperatingMode(3, 16);
+				//dxl.torqueEnable(1, 1);
+				dxl.torqueEnable(2, 1);
+				dxl.torqueEnable(3, 1);
+				runCartesian = true;
+				array<double, 3> cartesianGoal = { 260, 0, 200 };
+				trajectory.setNewCartesianGoal(cartesianGoal, 3000);
+				break;
+				}
+			case 'i':
+				{
+				dxl.torqueEnable(1, 0);
+				dxl.torqueEnable(2, 0);
+				dxl.torqueEnable(3, 0);
+				dxl.setOperatingMode(1, 16);
+				dxl.setOperatingMode(2, 16);
+				dxl.setOperatingMode(3, 16);
+				array<double, 3> cartPos = kinematics.ForwardKinematics(control.ReadPositionRad(1), control.ReadPositionRad(2),
+					control.ReadPositionRad(3)).getArray();
+				control.LogArray("EE cartesian position", cartPos);
+				control.LogArray("Inverse kinematic solution 1: ", kinematics.InverseKinematics(trajectory.arrayToPoint(cartPos)).SolutionOne);
+				control.LogArray("Inverse kinematic solution 2: ", kinematics.InverseKinematics(trajectory.arrayToPoint(cartPos)).SolutionTwo);
+
+				break;
+				}
 			case 'd':
 				debug();
 				break;
@@ -455,6 +488,11 @@ void loop() {
 				control.SoftEstop();
 				runControlLoop = 0;
 				runContinousControl = 0;
+				break;
+			case 'l':
+				dxl.torqueEnable(1, 0);
+				dxl.torqueEnable(2, 0);
+				dxl.torqueEnable(3, 0);
 				break;
             case ',':
                 Serial.read();
@@ -534,37 +572,37 @@ void loop() {
         unsigned int actualFrequency = 1000000/(micros()-timer);
         if(rateError > cycleTime * 0.1)
         {
-            Serial.print("WARNING: Missed target rate, actual frequency: ");
+            Serial.print("[WARNING]: Missed target rate, actual frequency: ");
             Serial.print(actualFrequency);
             Serial.println(" Hz");
         }
         timer = micros();
-		if (trajectory.goalReachedFlag && false)
+		if (trajectory.goalReachedFlag && 1)
 		{
 			switch (phase)
 			{
 			case 1:
 				desiredAngles = { 0,-1.57,1.57 };
-				desiredAccelerations = { 3,5,5 };
+				desiredAccelerations = { 3,15,15 };
 				currentAngles = control.ReadPositionRadArray();
 				Serial.println(currentAngles[2]);
-				trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 10000);
+				trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 1500);
 				phase += 1;
 				break;
 			case 2:
 				desiredAngles = { 0,0,0 };
-				desiredAccelerations = { 3,2,2 };
+				desiredAccelerations = { 3,3,3 };
 				currentAngles = control.ReadPositionRadArray();
 				Serial.println(currentAngles[2]);
-				trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 2000);
+				trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 3000);
 				phase += 1;
 				break;
 			case 3:
 				desiredAngles = { 0,1.57,-1.57 };
-				desiredAccelerations = { 3,3,3 };
+				desiredAccelerations = { 3,15,15 };
 				currentAngles = control.ReadPositionRadArray();
 				Serial.println(currentAngles[2]);
-				trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 2000);
+				trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 3000);
 				phase = 1;
 				break;
 			}
@@ -587,6 +625,11 @@ void loop() {
 		if (runContinousControl)
 		{
 			applyTorquesContinousMove();
+		}
+
+		if (runCartesian)
+		{
+			applyTorquesCartesian();
 		}
 		//control.CheckOverspeed(1.2);
         //pidCalculate(1,1,1);

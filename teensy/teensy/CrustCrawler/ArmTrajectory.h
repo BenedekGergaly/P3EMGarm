@@ -25,7 +25,7 @@ public:
 	array<array<double, 3>, 3> calculate();
 	array<array<double, 3>, 3> calculateContinousMove();
 	array<array<double, 3>, 3> calculateContinousCartesianMove();
-	void setNewCartesianGoal(array<double, 3> goalPositionT, array<double, 3> cartesianSpeedT);
+	void setNewCartesianGoal(array<double, 3> goalPositionT, double desiredTimeT);
 	array<array<double, 3>, 3> calculateCartesian();
 
 
@@ -33,10 +33,12 @@ public:
 	bool goalReachedFlag = 0;
 	bool continousMoveFlag = 0;
 
+	Point3D<double> arrayToPoint(array<double, 3> a);
+
 	double time = 2500; //debug stuff
 
 private:
-	array<double, 3> goalAngles, goalSpeeds, goalAccelerations, startAngles;
+	array<double, 3> goalAngles, goalSpeeds, goalAccelerations, startAngles, currentSpeeds;
 	double startTime, desiredTime;
 	array<double, 3> tb;
 	bool newGoalFlag = 0;
@@ -48,6 +50,6 @@ private:
 	double tempTime;
 	array<double, 3> cartesianGoalPosition, cartesianSpeed, cartesianPosition, cartesianPositionNew, angles, angleDifference, cartesianDifference;
 	ArmKinematics kinematics;
-	Point3D<double> arrayToPoint(array<double, 3> a);
+	int cartesianPhase = 0;
 };
 

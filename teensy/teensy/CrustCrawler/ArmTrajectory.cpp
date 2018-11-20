@@ -245,15 +245,26 @@ array<array<double, 3>, 3> ArmTrajectory::calculateContinousMove()
 //	return output;
 //}
 
-void ArmTrajectory::setNewCartesianGoal(array<double, 3> goalPositionT, array<double, 3> cartesianSpeedT)
+void ArmTrajectory::setNewCartesianGoal(array<double, 3> goalPositionT, double desiredTimeT)
 {
 	cartesianGoalPosition = goalPositionT;
-	cartesianSpeed = cartesianSpeedT;
+	desiredTime = desiredTimeT/1000;
+	array<double, 3>angles = control.ReadPositionRadArray();
+	cartesianPosition = kinematics.ForwardKinematics(angles[0], angles[1], angles[2]).getArray();
+	for (int i = 0; i < 3; i++)
+	{
+		cartesianSpeed[i] = (cartesianGoalPosition[i] - cartesianPosition[i]) / desiredTime;
+		output[i][0] = control.ReadPositionRad(i+1);
+		output[i][1] = 0;
+		output[i][2] = 0;
+	}
+	control.LogArray("cartSpeed", cartesianSpeed);
 	measureRateTempCounter = 0;
 }
 
 array<array<double, 3>, 3> ArmTrajectory::calculateCartesian()
 {
+	int interpolatorRelativeRate = 20;
 	if (measureRateTempCounter == 0)
 	{
 		measureRateTempTime = secsDouble();
@@ -262,18 +273,45 @@ array<array<double, 3>, 3> ArmTrajectory::calculateCartesian()
 	else if (measureRateTempCounter == 1)
 	{
 		currentRate = secsDouble() - measureRateTempTime;
+		Serial.print("Measured rate: ");
+		Serial.println(currentRate);
 		measureRateTempCounter = -1;
 	}
 	else
 	{
+		if (cartesianPhase == 0)
+		{
+			//interpolation
+			//array<double, 3>angles = control.ReadPositionRadArray();
+			cartesianPosition = kinematics.ForwardKinematics(output[0][0], output[1][0], output[2][0]).getArray();
+			for (int i = 0; i < 3; i++)
+			{
+				cartesianPosition[i] += cartesianSpeed[i] * currentRate * interpolatorRelativeRate;
+			}
+			goalAngles = kinematics.InverseKinematics(arrayToPoint(cartesianPosition)).SolutionTwo;
+			control.LogArray("kinematic solution", goalAngles);
+			for (int i = 0; i < 3; i++)
+			{
+				int endSpeed = 2 * (goalAngles[i] - output[i][0]) / (currentRate * interpolatorRelativeRate) - output[i][1]; //s=(v0+v1)/2*t solve for v1
+				goalAccelerations[i] = (endSpeed - output[i][1]) / (currentRate * interpolatorRelativeRate);
+			}
+		}
+		//trajectory gen
+		for (int i = 0; i < 3; i++)
+		{
+			output[i][2] = goalAccelerations[i];
+			output[i][1] += goalAccelerations[i] * currentRate;
+			output[i][0] += output[i][1] * currentRate;
+		}
 
-
+		cartesianPhase++;
+		if (cartesianPhase == interpolatorRelativeRate) cartesianPhase = 0;
 		return output;
 	}
 
 	for (int i = 0; i < 3; i++)
 	{
-		output[i][0] = 2;
+		output[i][0] = control.ReadPositionRad(i+1);
 		output[i][1] = 0;
 		output[i][2] = 0;
 	}

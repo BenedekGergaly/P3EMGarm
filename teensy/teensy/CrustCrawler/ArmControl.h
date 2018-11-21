@@ -37,6 +37,8 @@ public:
 	bool CheckOverspeed(double speedLimit);
 	void SoftEstop();
 	void LogArray(String text, array<double, 3> data);
+	void Log(String text, double data);
+	void Pause();
 
 	double kpTemp, kvTemp;
 private:

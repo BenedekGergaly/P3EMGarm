@@ -41,7 +41,7 @@ void ArmTrajectory::setNewGoal(array<double, 3> currentAngles, array<double, 3> 
 			Serial.println(goalAngles[i]);
 			Serial.println(startAngles[i]);
 			control.SoftEstop();
-			while (1);
+			control.Pause();
 		}
 		if (tb[i] > desiredTime / 2)
 		{
@@ -49,7 +49,7 @@ void ArmTrajectory::setNewGoal(array<double, 3> currentAngles, array<double, 3> 
 			Serial.println(i+1);
 			Serial.println("Aborting!");
 			control.SoftEstop();
-			while (1);
+			control.Pause();
 		}
 		output[i][0] = control.ReadPositionRad(i + 1);
 		output[i][1] = 0;
@@ -249,6 +249,7 @@ void ArmTrajectory::setNewCartesianGoal(array<double, 3> goalPositionT, double d
 {
 	cartesianGoalPosition = goalPositionT;
 	desiredTime = desiredTimeT/1000;
+	startTime = secsDouble();
 	array<double, 3>angles = control.ReadPositionRadArray();
 	cartesianPosition = kinematics.ForwardKinematics(angles[0], angles[1], angles[2]).getArray();
 	for (int i = 0; i < 3; i++)
@@ -260,11 +261,12 @@ void ArmTrajectory::setNewCartesianGoal(array<double, 3> goalPositionT, double d
 	}
 	control.LogArray("cartSpeed", cartesianSpeed);
 	measureRateTempCounter = 0;
+	goalReachedFlag = false;
 }
 
 array<array<double, 3>, 3> ArmTrajectory::calculateCartesian()
 {
-	int interpolatorRelativeRate = 20;
+	int interpolatorRelativeRate = 10;
 	if (measureRateTempCounter == 0)
 	{
 		measureRateTempTime = secsDouble();
@@ -277,24 +279,28 @@ array<array<double, 3>, 3> ArmTrajectory::calculateCartesian()
 		Serial.println(currentRate);
 		measureRateTempCounter = -1;
 	}
-	else
+	else if(goalReachedFlag == false && measureRateTempCounter == -1)
 	{
 		if (cartesianPhase == 0)
 		{
 			//interpolation
-			//array<double, 3>angles = control.ReadPositionRadArray();
 			cartesianPosition = kinematics.ForwardKinematics(output[0][0], output[1][0], output[2][0]).getArray();
+			control.LogArray("cart1", cartesianPosition);
 			for (int i = 0; i < 3; i++)
 			{
 				cartesianPosition[i] += cartesianSpeed[i] * currentRate * interpolatorRelativeRate;
 			}
-			goalAngles = kinematics.InverseKinematics(arrayToPoint(cartesianPosition)).SolutionTwo;
+			control.LogArray("cart2", cartesianPosition);
+			goalAngles = kinematics.InverseKinematics(arrayToPoint(cartesianPosition)).SolutionOne;
 			control.LogArray("kinematic solution", goalAngles);
 			for (int i = 0; i < 3; i++)
 			{
-				int endSpeed = 2 * (goalAngles[i] - output[i][0]) / (currentRate * interpolatorRelativeRate) - output[i][1]; //s=(v0+v1)/2*t solve for v1
+				control.Log("old speed", output[i][1]);
+				double endSpeed = 2 * (goalAngles[i] - output[i][0]) / (currentRate * interpolatorRelativeRate) - output[i][1]; //s=(v0+v1)/2*t solve for v1 --> v1 = (2 s)/t - v0
 				goalAccelerations[i] = (endSpeed - output[i][1]) / (currentRate * interpolatorRelativeRate);
+				control.Log("endSpeed", endSpeed);
 			}
+			//control.Pause();
 		}
 		//trajectory gen
 		for (int i = 0; i < 3; i++)
@@ -306,7 +312,20 @@ array<array<double, 3>, 3> ArmTrajectory::calculateCartesian()
 
 		cartesianPhase++;
 		if (cartesianPhase == interpolatorRelativeRate) cartesianPhase = 0;
+		if (secsDouble() - startTime > desiredTime) goalReachedFlag = true;
 		return output;
+	}
+
+	if (goalReachedFlag)
+	{
+		Serial.println("Goal reached");
+		control.LogArray("goal position", cartesianGoalPosition);
+		control.LogArray("output[][] position", kinematics.ForwardKinematics(output[0][0], output[1][0], output[2][0]).getArray());
+		control.LogArray("measured position", kinematics.ForwardKinematics(control.ReadPositionRad(1), control.ReadPositionRad(2),
+			control.ReadPositionRad(3)).getArray());
+
+		control.SoftEstop();
+		control.Pause();
 	}
 
 	for (int i = 0; i < 3; i++)

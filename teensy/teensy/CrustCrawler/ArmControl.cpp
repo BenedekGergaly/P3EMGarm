@@ -1,5 +1,9 @@
 #include "ArmControl.h"
 
+#define RESTART_ADDR       0xE000ED0C
+#define READ_RESTART()     (*(volatile uint32_t *)RESTART_ADDR)
+#define WRITE_RESTART(val) ((*(volatile uint32_t *)RESTART_ADDR) = (val))
+
 ArmControl::ArmControl()
 {
 }
@@ -124,6 +128,8 @@ array<double, 3> ArmControl::ReadVelocityRadArray()
 
 void ArmControl::SendTorquesAllInOne(array<double, 3> torques)
 {
+	//REMOVE LATER
+	torques[0] = 0;
 	int stopFlag = false;
 	for (int i = 0; i < 3; i++)
 	{
@@ -138,7 +144,7 @@ void ArmControl::SendTorquesAllInOne(array<double, 3> torques)
 	{
 		SoftEstop();
 		Serial.println("Aborting!");
-		while (1);
+		Pause();
 	}
 	double pwm1 = ComputeOutputPWM(torques[0], ServoType::MX106);
 	double pwm2 = ComputeOutputPWM(torques[1], ServoType::MX106);
@@ -188,4 +194,21 @@ void ArmControl::LogArray(String text, array<double, 3> data)
 	Serial.print(data[1]);
 	Serial.print("   ");
 	Serial.println(data[2]);
+}
+
+void ArmControl::Log(String text, double data)
+{
+	Serial.print(text);
+	Serial.print(": ");
+	Serial.println(data);
+}
+
+void ArmControl::Pause()
+{
+	Serial.println("Paused. Send r to resume or x to reset.");
+	while (!Serial.available());
+	if (Serial.read() == 'x')
+	{
+		WRITE_RESTART(0x5FA0004);
+	}
 }

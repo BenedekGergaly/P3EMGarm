@@ -577,7 +577,7 @@ void loop() {
             Serial.println(" Hz");
         }
         timer = micros();
-		if (trajectory.goalReachedFlag && 1)
+		if (trajectory.goalReachedFlag && runContinousControl == 0 && runCartesian == 0)
 		{
 			switch (phase)
 			{

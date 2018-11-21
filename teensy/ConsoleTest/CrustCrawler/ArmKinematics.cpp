@@ -27,7 +27,7 @@ KinematicInverseAngles ArmKinematics::InverseKinematics(Point3D<double>& coordin
 	auto t14Vector = getT14Pos(theta1, coordinates);
 	double len1 = sqrt(pow((double)t14Vector.getX(), 2) + pow((double)t14Vector.getZ(), 2));
 	double len2 = 224;
-	double len3 = 149;
+	double len3 = 263;
 	double temp1 = pow(len1, 2) + pow(len2, 2) - pow(len3, 2);
 	double temp2 = 2.0 * len1 * len2;
 	double fraction = temp1 / temp2;

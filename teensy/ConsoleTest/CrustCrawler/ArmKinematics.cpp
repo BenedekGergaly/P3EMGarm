@@ -43,7 +43,7 @@ KinematicInverseAngles ArmKinematics::InverseKinematics(Point3D<double>& coordin
 	double b = (2 * len2 * len3);
 	double c = a / b;
 	double cTheta3 = -((pow(len2, 2) + pow(len3, 2) - pow(len1, 2)) / (2 * len2 * len3));
-	cTheta3 = cTheta3 > 1.00 ? 1.00000 : cTheta3;
+	//cTheta3 = cTheta3 > 1.00 ? 1.00000 : cTheta3;
 	double theta31 = atan2(sqrt(1.0 - pow(cTheta3, 2)), cTheta3);
 	double theta32 = atan2(-sqrt(1.0 - pow(cTheta3, 2)), cTheta3);
 

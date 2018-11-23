@@ -3,16 +3,19 @@
 #include <array>
 #include <cmath>
 #include <Arduino.h>
+#include "servo.h"
 #include "ArmControl.h"
 #include "ArmKinematics.h"
 #include "Models/Point3D.h"
+#include "Utilities.h"
+#include "ServoHelper.h"
 
 using namespace std;
 
 class ArmTrajectory
 {
 public:
-	ArmTrajectory();
+	ArmTrajectory(servo &dynamixel);
 	~ArmTrajectory();
 
 	double maxJointSpeed = 0.8; //rad/s
@@ -35,7 +38,6 @@ public:
 	bool goalReachedFlag = 0;
 	bool continousMoveFlag = 0;
 
-	Point3D<double> arrayToPoint(array<double, 3> a);
 	int checkJointOutOfBounds(array<double, 3> input); //returns 0 if okay, joint number if failed
 	double adjustJoint1Angle(double solution, double reference); //makes sure angles over 180 don't become the opposite sign during inverse kinematics
 
@@ -45,9 +47,8 @@ public:
 private:
 	ArmControl control;
 	ArmKinematics kinematics;
-
-	double millisDouble();
-	double secondsDouble();
+	Utilities utilities;
+	ServoHelper * servoHelper;
 
 	array<double, 3> goalAngles, goalSpeeds, goalAccelerations, startAngles, currentSpeeds, anglesNew;
 	double startTime, desiredTime;

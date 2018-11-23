@@ -106,22 +106,20 @@ array<double, 3> ArmControl::ReadVelocityRadArray()
 
 void ArmControl::SendTorquesAllInOne(array<double, 3> torques)
 {
-	//REMOVE LATER
-	torques[0] = 0;
 	int stopFlag = false;
 	for (int i = 0; i < 3; i++)
 	{
-		if (abs(torques[i]) > 10)
+		if (abs(torques[i]) > 5)
 		{
 			Serial.print("[ERROR] Control: Overtorque on servo #");
 			Serial.println(i + 1);
+			Log("Value", torques[i]);
 			stopFlag = 1;
 		}
 	}
 	if (stopFlag)
 	{
 		SoftEstop();
-		Serial.println("Aborting!");
 		Pause();
 	}
 	double pwm1 = ComputeOutputPWM(torques[0], ServoType::MX106);

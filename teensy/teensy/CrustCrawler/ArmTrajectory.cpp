@@ -216,6 +216,7 @@ void ArmTrajectory::setNewCartesianGoal(array<double, 3> goalPositionT, double d
 			cartesianPosition[j] += cartesianSpeed[i];
 		}
 		array<double, 3> solution = kinematics.InverseKinematics(arrayToPoint(cartesianPosition)).SolutionOne;
+		solution[0] = adjustJoint1Angle(solution[0], angles[0]);
 		for (int j = 0; j < 3; j++)
 		{
 			if (isnan(solution[j]))
@@ -227,7 +228,6 @@ void ArmTrajectory::setNewCartesianGoal(array<double, 3> goalPositionT, double d
 				return;
 			}
 		}
-		solution[0] = adjustJoint1Angle(solution[0], angles[0]);
 		if (int id = checkJointOutOfBounds(solution))
 		{
 			control.SoftEstop();
@@ -283,10 +283,10 @@ array<array<double, 3>, 3> ArmTrajectory::calculateCartesian()
 			control.LogArray("kinematic solution", goalAngles);
 			for (int i = 0; i < 3; i++)
 			{
-				control.Log("old speed", output[i][1]);
+				//control.Log("old speed", output[i][1]);
 				double endSpeed = 2 * (goalAngles[i] - output[i][0]) / (currentRate * interpolatorRelativeRate) - output[i][1]; //s=(v0+v1)/2*t solve for v1 --> v1 = (2 s)/t - v0
 				goalAccelerations[i] = (endSpeed - output[i][1]) / (currentRate * interpolatorRelativeRate);
-				control.Log("endSpeed", endSpeed);
+				//control.Log("endSpeed", endSpeed);
 			}
 			//control.Pause();
 		}
@@ -301,6 +301,12 @@ array<array<double, 3>, 3> ArmTrajectory::calculateCartesian()
 		cartesianPhase++;
 		if (cartesianPhase == interpolatorRelativeRate) cartesianPhase = 0;
 		if (secondsDouble() - startTime > desiredTime) goalReachedFlag = true;
+
+		//control.LogArray("goal position", cartesianGoalPosition);
+		//control.LogArray("output[][] position", kinematics.ForwardKinematics(output[0][0], output[1][0], output[2][0]).getArray());
+		//control.LogArray("measured position", kinematics.ForwardKinematics(control.ReadPositionRad(1), control.ReadPositionRad(2),
+		//	control.ReadPositionRad(3)).getArray());
+
 		return output;
 	}
 
@@ -308,7 +314,7 @@ array<array<double, 3>, 3> ArmTrajectory::calculateCartesian()
 	{
 		Serial.println("Goal reached");
 		control.LogArray("goal position", cartesianGoalPosition);
-		control.LogArray("output[][] position", kinematics.ForwardKinematics(output[0][0], output[1][0], output[2][0]).getArray());
+		control.LogArray("output[ ][ ] position", kinematics.ForwardKinematics(output[0][0], output[1][0], output[2][0]).getArray());
 		control.LogArray("measured position", kinematics.ForwardKinematics(control.ReadPositionRad(1), control.ReadPositionRad(2),
 			control.ReadPositionRad(3)).getArray());
 

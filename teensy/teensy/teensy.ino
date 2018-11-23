@@ -96,8 +96,8 @@ void applyCartesianWaypointMove()
 {
 	array<double, 3> feedbackPosition = control.ReadPositionRadArray();
 	array<double, 3> feedbackVelocity = control.ReadVelocityRadArray();
-	control.LogArray("Current position", feedbackPosition);
-	control.LogArray("Current velocity", feedbackVelocity);
+	//control.LogArray("Current position", feedbackPosition);
+	//control.LogArray("Current velocity", feedbackVelocity);
 
 	array<array<double, 3>, 3> inputs = trajectory.calculateCartesian();
 	array<double, 3> desiredAngles, desiredSpeeds, desiredAccelerations;
@@ -108,12 +108,12 @@ void applyCartesianWaypointMove()
 		desiredAccelerations[i] = inputs[i][2];
 	}
 	array<double, 3> torques = control.ComputeControlTorque(desiredAngles, desiredSpeeds, desiredAccelerations, feedbackPosition, feedbackVelocity);
-	control.LogArray("Angles", desiredAngles);
-	control.LogArray("Speeds", desiredSpeeds);
-	control.LogArray("Accelerations", desiredAccelerations);
-	control.LogArray("Torques", torques);
+	//control.LogArray("Angles", desiredAngles);
+	//control.LogArray("Speeds", desiredSpeeds);
+	//control.LogArray("Accelerations", desiredAccelerations);
+	//control.LogArray("Torques", torques);
 	control.SendTorquesAllInOne(torques);
-	Serial.println("=================");
+	//Serial.println("=================");
 }
 
 void printEEPROMvalues()
@@ -163,7 +163,7 @@ void enableTorqueForAll()
 	dxl.setOperatingMode(1, pwm);
 	dxl.setOperatingMode(2, pwm);
 	dxl.setOperatingMode(3, pwm);
-	//dxl.torqueEnable(1, 1);
+	dxl.torqueEnable(1, 1);
 	dxl.torqueEnable(2, 1);
 	dxl.torqueEnable(3, 1);
 }

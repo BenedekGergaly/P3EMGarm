@@ -1,5 +1,6 @@
 #include "ArmKinematics.h"
 
+
 ArmKinematics::ArmKinematics()
 {
 }
@@ -17,7 +18,7 @@ Point3D<double> ArmKinematics::ForwardKinematics(double theta1, double theta2, d
 	return Point3D<double>(x, y, z);
 }
 
-KinematicInverseAngles ArmKinematics::InverseKinematics(Point3D<double>& coordinates) const
+KinematicInverseAngles ArmKinematics::InverseKinematics(Point3D<double> coordinates) const
 {
 	KinematicInverseAngles angles;
 	double theta1 = atan2(-coordinates.getY(), -coordinates.getX());

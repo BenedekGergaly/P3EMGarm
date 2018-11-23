@@ -33,3 +33,8 @@ array<double, 3> ArmControl::ComputeControlTorque(array<double, 3> thetaDesired,
 	array<double, 3> velocity = { 0,0,0 };
 	return ComputeControlTorque(thetaDesired, acceleration, velocity, thetaFeedback, dThetaFeedback);
 }
+
+void ArmControl::resetIntegral()
+{
+	integralValues = { 0,0,0 };
+}

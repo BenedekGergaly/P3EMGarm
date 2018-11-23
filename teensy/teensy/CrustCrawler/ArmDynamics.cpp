@@ -119,6 +119,7 @@ void ArmDynamics::addVelocity(const double theta[3], const double dTheta[3], dou
 void ArmDynamics::addFriction(const double dTheta[3], double tau[3]) {
 	for (int i = 0; i < 3; ++i) {
 		if (dTheta[i] != 0)
-			tau[i] += copysign(0.08, dTheta[i]);
+			//tau[i] += copysign(0.5, dTheta[i]);
+			tau[i] += 0.25*dTheta[i];
 	}
 }

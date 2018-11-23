@@ -22,6 +22,7 @@ public:
 		array<double, 3> thetaFeedback,
 		array<double, 3> dThetaFeedback);
 	array<double, 3> ComputeControlTorque(array<double, 3> thetaDesired, array<double, 3> thetaFeedback, array<double, 3> dThetaFeedback);
+	void resetIntegral();
 
 	double Kp, Kv, Kpi;
 	double lastTime = 0;

@@ -402,27 +402,21 @@ void waypointIDdecoder()
 	switch (currentWaypointID)
 	{
 	case 1:
+		control.resetIntegral();
 		desiredAngles = { 0,-1.57,1.57 };
-		desiredAccelerations = { 3,15,15 };
-		currentAngles = servoHelper.ReadPositionRadArray();
-		Serial.println(currentAngles[2]);
-		trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 1500);
-		currentWaypointID += 1;
-		break;
-	case 2:
-		desiredAngles = { 0,0,0 };
 		desiredAccelerations = { 3,3,3 };
 		currentAngles = servoHelper.ReadPositionRadArray();
 		Serial.println(currentAngles[2]);
-		trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 3000);
+		trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 4000);
 		currentWaypointID += 1;
 		break;
-	case 3:
+	case 2:
+		control.resetIntegral();
 		desiredAngles = { 0,1.57,-1.57 };
-		desiredAccelerations = { 3,15,15 };
+		desiredAccelerations = { 3,3,3 };
 		currentAngles = servoHelper.ReadPositionRadArray();
 		Serial.println(currentAngles[2]);
-		trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 3000);
+		trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 4000);
 		currentWaypointID = 1;
 		break;
 	}

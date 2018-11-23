@@ -124,10 +124,12 @@ void printEEPROMvalues()
 {
     Serial.print("Frequency: ");
     Serial.println(cycleFrequency);
-	Serial.print("kp, kv: ");
+	Serial.print("kp, kv, kpi: ");
 	Serial.print(control.Kp);
 	Serial.print("   ");
-	Serial.println(control.Kv);
+	Serial.print(control.Kv);
+	Serial.print("   ");
+	Serial.println(control.Kpi);
 }
 
 void gripper(bool b) //1=close, 0=open
@@ -251,6 +253,15 @@ void commandDecoder()
 			Serial.println(temp);
 			EEPROM.put(300, temp);
 			control.Kv = temp;
+			break;
+		}
+		case 'c': //update Kpi
+		{
+			double temp = Serial.parseFloat();
+			Serial.print("new kpi is: ");
+			Serial.println(temp);
+			EEPROM.put(400, temp);
+			control.Kpi = temp;
 			break;
 		}
 		case 'k': //Joint waypoint mode
@@ -430,6 +441,7 @@ void setup()
     cycleTime = 1000000/cycleFrequency; //in microsec
 	EEPROM.get(200, control.Kp);
 	EEPROM.get(300, control.Kv);
+	EEPROM.get(400, control.Kpi);
 
     for (int i=0;i<5;i++)
     {

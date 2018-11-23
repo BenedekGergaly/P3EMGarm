@@ -7,6 +7,7 @@
 #include "ArmDynamics.h"
 #include "servo.h"
 #include "Arduino.h"
+#include "Utilities.h"
 
 using namespace std;
 
@@ -22,10 +23,13 @@ public:
 		array<double, 3> dThetaFeedback);
 	array<double, 3> ComputeControlTorque(array<double, 3> thetaDesired, array<double, 3> thetaFeedback, array<double, 3> dThetaFeedback);
 
-	double Kp, Kv;
+	double Kp, Kv, Kpi;
+	double lastTime = 0;
+	array<double, 3> integralValues;
 private:
 	ArmDynamics dynamics;
 	servo dxl;
+	Utilities utilities;
 };
 
 #endif

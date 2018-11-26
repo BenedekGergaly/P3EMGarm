@@ -307,6 +307,33 @@ void commandDecoder()
 			dxl.torqueEnable(2, 0);
 			dxl.torqueEnable(3, 0);
 			break;
+		case 'q':
+		{
+			int pwm = -300;
+			enableTorqueForAll();
+			for (int i = pwm; i > -885;i-=20)
+			{
+				dxl.setGoalPwm(3, i);
+				Serial.print(i);
+				Serial.print(",");
+				delay(1000);
+				Serial.print(servoHelper.ReadVelocityRad(3));
+				Serial.print(",");
+				int16_t current = 0;
+				double average = 0;
+				for (int j = 0; j < 500; j++)
+				{
+					dxl.readCurrent(3, current);
+					average += current;
+					delay(5);
+				}
+				average = average / 500;
+				Serial.println(average);
+				pwm -= 50;
+			}
+			dxl.setGoalPwm(3, 0);
+			break;
+		}
 		case ',':
 			Serial.read();
 			break;

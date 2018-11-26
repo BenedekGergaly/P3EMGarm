@@ -62,6 +62,7 @@ class servo
         bool doPing(uint8_t id, size_t timeout = 100);
         bool readPosition(uint8_t id, int32_t& position);
 		bool readVelocity(uint8_t id, int32_t& velocity);
+		bool readCurrent(uint8_t id, int16_t& current);
         bool setGoalPosition(uint8_t id, int32_t position);
         bool torqueEnable(uint8_t id, bool enable);
         bool setOperatingMode(uint8_t id, uint8_t mode);

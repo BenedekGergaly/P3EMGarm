@@ -381,6 +381,20 @@ bool servo::readVelocity(uint8_t id, int32_t& velocity)
 	}
 }
 
+bool servo::readCurrent(uint8_t id, int16_t & current)
+{
+	sendReadInstruction(id, 126, 2);
+	if (receivePackage(100))
+	{
+		current = getInt16t(rx_buffer, 9);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 // Set the goal position of a servo
 // Reads the position of a servo, if no response is read, the function does not
 // modify the value of the position variable.

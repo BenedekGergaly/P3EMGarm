@@ -19,6 +19,7 @@ array<double, 3> ArmControl::ComputeControlTorque(array<double, 3> thetaDesired,
 		integralValues[i] += positionError * (utilities.secondsDouble() - lastTime);
 		computedAcceleration[i] = positionError * Kp + integralValues[i] * Kpi + (dThetaDesired[i] - dThetaFeedback[i]) * Kv + ddThetaDesired[i];
 	}
+	utilities.LogArray("computed acc", computedAcceleration);
 	//Some stuff here from the dynamics calculating the torque
 	array<double, 3> torque = dynamics.ComputeOutputTorque(computedAcceleration, thetaFeedback, dThetaFeedback); 
 	lastTime = utilities.secondsDouble();

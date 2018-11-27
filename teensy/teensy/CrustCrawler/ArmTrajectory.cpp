@@ -263,7 +263,6 @@ array<array<double, 3>, 3> ArmTrajectory::calculateCartesian()
 	else if (measureRateTempCounter == 1)
 	{
 		currentRate = utilities.secondsDouble() - measureRateTempTime;
-		Serial.print("Measured rate: ");
 		Serial.println(currentRate);
 		measureRateTempCounter = -1;
 	}
@@ -280,7 +279,7 @@ array<array<double, 3>, 3> ArmTrajectory::calculateCartesian()
 			}
 			utilities.LogArray("cart2", cartesianPosition);
 			goalAngles = kinematics.InverseKinematics(utilities.ArrayToPoint(cartesianPosition)).SolutionOne; //elbow up
-			goalAngles[0] = adjustJoint1Angle(goalAngles[0], output[0][0]); //Needs to be tested!
+			goalAngles[0] = adjustJoint1Angle(goalAngles[0], output[0][0]);
 			utilities.LogArray("kinematic solution", goalAngles);
 			for (int i = 0; i < 3; i++)
 			{
@@ -360,6 +359,7 @@ void ArmTrajectory::stopContinousCartesianMove()
 //WIP
 array<array<double, 3>, 3> ArmTrajectory::calculateContinousCartesianMove()
 {
+	int interpolatorRelativeRate = 0;
 	if (measureRateTempCounter == 0)
 	{
 		measureRateTempTime = utilities.secondsDouble();
@@ -372,18 +372,46 @@ array<array<double, 3>, 3> ArmTrajectory::calculateContinousCartesianMove()
 	}
 	else if(continousMoveFlag == 1)
 	{
+		if (cartesianPhase == 0)
+		{
+			//interpolation
+			cartesianPosition = kinematics.ForwardKinematics(output[0][0], output[1][0], output[2][0]).getArray();
+			utilities.LogArray("cart1", cartesianPosition);
+			for (int i = 0; i < 3; i++)
+			{
+				cartesianPosition[i] += cartesianSpeed[i] * currentRate * interpolatorRelativeRate;
+			}
+			utilities.LogArray("cart2", cartesianPosition);
+			goalAngles = kinematics.InverseKinematics(utilities.ArrayToPoint(cartesianPosition)).SolutionOne; //elbow up
+			goalAngles[0] = adjustJoint1Angle(goalAngles[0], output[0][0]);
+			utilities.LogArray("kinematic solution", goalAngles);
+			for (int i = 0; i < 3; i++)
+			{
+				//control.Log("old speed", output[i][1]);
+				double endSpeed = 2 * (goalAngles[i] - output[i][0]) / (currentRate * interpolatorRelativeRate) - output[i][1]; //s=(v0+v1)/2*t solve for v1 --> v1 = (2 s)/t - v0
+				goalAccelerations[i] = (endSpeed - output[i][1]) / (currentRate * interpolatorRelativeRate);
+				//control.Log("endSpeed", endSpeed);
+			}
+			//control.Pause();
+		}
+		//trajectory gen
 		for (int i = 0; i < 3; i++)
 		{
-			cartesianDifference[i] = cartesianPosition[i] + cartesianSpeed[i] * (utilities.secondsDouble() - startTime);
-			cartesianPositionNew[i] += cartesianDifference[i];
+			output[i][2] = goalAccelerations[i];
+			output[i][1] += goalAccelerations[i] * currentRate;
+			output[i][0] += output[i][1] * currentRate;
 		}
-		//array<double, 3> anglesNew = kinematics.InverseKinematics(arrayToPoint(cartesianPositionNew)).SolutionOne;
-		bool overspeedFlag = 0;
-		for (int i = 0; i < 3; i++)
-		{
-			angleDifference[i] = anglesNew[i] - angles[i];
-			if (angleDifference[i] / currentRate > maxJointSpeed) overspeedFlag = 1;
-		}
+
+		cartesianPhase++;
+		if (cartesianPhase == interpolatorRelativeRate) cartesianPhase = 0;
+		if (utilities.secondsDouble() - startTime > desiredTime) goalReachedFlag = true;
+
+		//control.LogArray("goal position", cartesianGoalPosition);
+		//control.LogArray("output[][] position", kinematics.ForwardKinematics(output[0][0], output[1][0], output[2][0]).getArray());
+		//control.LogArray("measured position", kinematics.ForwardKinematics(control.ReadPositionRad(1), control.ReadPositionRad(2),
+		//	control.ReadPositionRad(3)).getArray());
+
+		return output;
 	}
 	else if (continousMoveFlag == 0 && goalReachedFlag == 0)
 	{

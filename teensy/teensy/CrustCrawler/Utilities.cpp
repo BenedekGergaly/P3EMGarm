@@ -70,9 +70,23 @@ double Utilities::ComputeOutputPWM(double desiredTorque, ServoType servoType)
 	switch (servoType)
 	{
 	case ServoType::MX64:
-		return lround(216.85*desiredTorque);// +16;
+		if (desiredTorque >= 0)
+		{
+			return lround(209.4336*desiredTorque);
+		}
+		else
+		{
+			return lround(196.95*desiredTorque);
+		}
 	case ServoType::MX106:
-		return lround(125.48*desiredTorque);// +18;
+		if (desiredTorque >= 0)
+		{
+			return lround(123.6096*desiredTorque);
+		}
+		else
+		{
+			return lround(131.4082*desiredTorque);
+		}
 	default:
 		return 0.0;
 	}

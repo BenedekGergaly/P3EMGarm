@@ -31,6 +31,7 @@ bool enableJointWaypointLoop = false;
 bool enableJointContinousLoop = false;
 bool enableCartesianWaypointLoop = false;
 bool enableCartesianContinousLoop = false;
+bool enableDebug = false;
 int currentWaypointID = 1;
 
 array<double, 3> desiredAngles;
@@ -118,6 +119,25 @@ void applyCartesianWaypointMove()
 	//control.LogArray("Torques", torques);
 	servoHelper.SendTorquesAllInOne(torques);
 	//Serial.println("=================");
+}
+
+void debug()
+{
+	array<double, 3> feedbackPosition = servoHelper.ReadPositionRadArray();
+	array<double, 3> feedbackVelocity = servoHelper.ReadVelocityRadArray();
+	utilities.LogArray("Current position", feedbackPosition);
+	utilities.LogArray("Current velocity", feedbackVelocity);
+	array<double, 3> desiredSpeeds = { 0,0,0 };
+	array<double, 3> desiredAngles = { 0,0,0 };
+	array<double, 3> desiredAccelerations = { 0,0,0 };
+
+	array<double, 3> torques = control.ComputeControlTorque(desiredAngles, desiredSpeeds, desiredAccelerations, feedbackPosition, feedbackVelocity);
+	utilities.LogArray("Angles", desiredAngles);
+	utilities.LogArray("Speeds", desiredSpeeds);
+	utilities.LogArray("Accelerations", desiredAccelerations);
+	utilities.LogArray("Torques", torques);
+	servoHelper.SendTorquesAllInOne(torques);
+	Serial.println("=================");
 }
 
 void printEEPROMvalues()
@@ -308,32 +328,8 @@ void commandDecoder()
 			dxl.torqueEnable(3, 0);
 			break;
 		case 'q':
-		{
-			int pwm = -300;
+			enableDebug = true;
 			enableTorqueForAll();
-			for (int i = pwm; i > -885;i-=20)
-			{
-				dxl.setGoalPwm(3, i);
-				Serial.print(i);
-				Serial.print(",");
-				delay(1000);
-				Serial.print(servoHelper.ReadVelocityRad(3));
-				Serial.print(",");
-				int16_t current = 0;
-				double average = 0;
-				for (int j = 0; j < 500; j++)
-				{
-					dxl.readCurrent(3, current);
-					average += current;
-					delay(5);
-				}
-				average = average / 500;
-				Serial.println(average);
-				pwm -= 50;
-			}
-			dxl.setGoalPwm(3, 0);
-			break;
-		}
 		case ',':
 			Serial.read();
 			break;
@@ -516,5 +512,7 @@ void loop()
 		{
 			applyCartesianWaypointMove();
 		}
+
+		if (enableDebug) debug();
     }
 }

@@ -1,5 +1,5 @@
 #include "ArmKinematics.h"
-#include <intrin.h>
+
 
 ArmKinematics::ArmKinematics()
 {
@@ -7,7 +7,7 @@ ArmKinematics::ArmKinematics()
 
 ArmKinematics::~ArmKinematics()
 {
-		
+
 }
 
 Point3D<double> ArmKinematics::ForwardKinematics(double theta1, double theta2, double theta3)
@@ -18,7 +18,7 @@ Point3D<double> ArmKinematics::ForwardKinematics(double theta1, double theta2, d
 	return Point3D<double>(x, y, z);
 }
 
-KinematicInverseAngles ArmKinematics::InverseKinematics(Point3D<double>& coordinates) const
+KinematicInverseAngles ArmKinematics::InverseKinematics(Point3D<double> coordinates) const
 {
 	KinematicInverseAngles angles;
 	double theta1 = atan2(-coordinates.getY(), -coordinates.getX());
@@ -26,8 +26,8 @@ KinematicInverseAngles ArmKinematics::InverseKinematics(Point3D<double>& coordin
 	angles.SolutionTwo[0] = theta1;
 	auto t14Vector = getT14Pos(theta1, coordinates);
 	double len1 = sqrt(pow((double)t14Vector.getX(), 2) + pow((double)t14Vector.getZ(), 2));
-	double len2 = 224;
-	double len3 = 263;
+	double len2 = length2;
+	double len3 = length3;
 	double temp1 = pow(len1, 2) + pow(len2, 2) - pow(len3, 2);
 	double temp2 = 2.0 * len1 * len2;
 	double fraction = temp1 / temp2;
@@ -39,21 +39,14 @@ KinematicInverseAngles ArmKinematics::InverseKinematics(Point3D<double>& coordin
 
 	angles.SolutionOne[1] = theta21;
 	angles.SolutionTwo[1] = theta22;
-	double a = (pow(len2, 2) + pow(len3, 2) - pow(len1, 2));
-	double b = (2 * len2 * len3);
-	double c = a / b;
+
 	double cTheta3 = -((pow(len2, 2) + pow(len3, 2) - pow(len1, 2)) / (2 * len2 * len3));
-	//cTheta3 = cTheta3 > 1.00 ? 1.00000 : cTheta3;
+	cTheta3 = cTheta3 > 1.00 ? 1.00000 : cTheta3;
 	double theta31 = atan2(sqrt(1.0 - pow(cTheta3, 2)), cTheta3);
 	double theta32 = atan2(-sqrt(1.0 - pow(cTheta3, 2)), cTheta3);
 
 	angles.SolutionOne[2] = theta31;
 	angles.SolutionTwo[2] = theta32;
-
-	if (theta31 == 0 || theta32 == 0)
-	{
-		//__debugbreak();
-	}
 
 	return angles;
 }
@@ -61,10 +54,7 @@ KinematicInverseAngles ArmKinematics::InverseKinematics(Point3D<double>& coordin
 Point3D<double> ArmKinematics::getT14Pos(double theta1, Point3D<double>& coordinates) const
 {
 	double x = coordinates.getX()*cos(theta1) + coordinates.getY()*sin(theta1);
-	double a = coordinates.getY()*cos(theta1);
-	double b = coordinates.getX()*sin(theta1);
 	double y = coordinates.getY()*cos(theta1) - coordinates.getX()*sin(theta1);
-	if (abs(y) < 0.0001) y = 0;
 	double z = -237 + coordinates.getZ();
 	Point3D<double> points = Point3D<double>(x, y, z);
 
@@ -76,10 +66,10 @@ double ** ArmKinematics::getT14Matrix(double theta1, Point3D<double>& coordinate
 {
 	//           ROW COL
 	double** matrix = new double*[4]{
-		new double[4] { 0, 0, 0, 0 },
-		new double[4] { 0, 0, 0, 0 },
-		new double[4] { 0, 0, 0, 0 },
-		new double[4] { 0, 0, 0, 0 }
+		new double[4]{ 0, 0, 0, 0 },
+		new double[4]{ 0, 0, 0, 0 },
+		new double[4]{ 0, 0, 0, 0 },
+		new double[4]{ 0, 0, 0, 0 }
 	};
 
 	matrix[0][0] = cos(theta1);

@@ -12,6 +12,7 @@ ArmControl::~ArmControl()
 array<double, 3> ArmControl::ComputeControlTorque(array<double, 3> thetaDesired, array<double, 3> dThetaDesired, 
 	array<double, 3> ddThetaDesired, array<double, 3> thetaFeedback, array<double, 3> dThetaFeedback)
 {
+	if (lastTime == 0) lastTime = utilities.secondsDouble();
 	array<double, 3> computedAcceleration;
 	for (int i = 0; i < 3; i++)
 	{

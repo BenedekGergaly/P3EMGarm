@@ -330,6 +330,10 @@ void commandDecoder()
 		case 'q':
 			enableDebug = true;
 			enableTorqueForAll();
+			for (int i = 0; i < 3; i++)
+			{
+				control.integralValues[i] = 0;
+			}
 		case ',':
 			Serial.read();
 			break;

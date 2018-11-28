@@ -56,7 +56,7 @@ void ServoHelper::SendTorquesAllInOne(array<double, 3> torques)
 	int stopFlag = false;
 	for (int i = 0; i < 3; i++)
 	{
-		if (abs(torques[i]) > 20)
+		if (abs(torques[i]) > 1000)
 		{
 			Serial.print("[ERROR] Control: Overtorque on servo #");
 			Serial.println(i + 1);

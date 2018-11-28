@@ -33,6 +33,7 @@ bool enableCartesianWaypointLoop = false;
 bool enableCartesianContinousLoop = false;
 bool enableDebug = false;
 int currentWaypointID = 1;
+int debugPhase = 1;
 
 array<double, 3> desiredAngles;
 array<double, 3> desiredAccelerations;
@@ -129,8 +130,16 @@ void debug()
 	utilities.LogArray("Current velocity", feedbackVelocity);
 	array<double, 3> desiredSpeeds = { 0,0,0 };
 	array<double, 3> desiredAngles = { 0,0,0 };
-	array<double, 3> desiredAccelerations = { 0,0,0 };
+	if (debugPhase == 1)
+	{
+		desiredAngles = { 0,0,0 };
+	}
+	else
+	{
+		desiredAngles = { 0,1.57, 0 };
+	}
 
+	array<double, 3> desiredAccelerations = { 0,0,0 };
 	array<double, 3> torques = control.ComputeControlTorque(desiredAngles, desiredSpeeds, desiredAccelerations, feedbackPosition, feedbackVelocity);
 	utilities.LogArray("Angles", desiredAngles);
 	utilities.LogArray("Speeds", desiredSpeeds);
@@ -330,10 +339,16 @@ void commandDecoder()
 		case 'q':
 			enableDebug = true;
 			enableTorqueForAll();
-			for (int i = 0; i < 3; i++)
+			control.integralValues = { 0,0,0 };
+			if (debugPhase == 1)
 			{
-				control.integralValues[i] = 0;
+				debugPhase = 2;
 			}
+			else
+			{
+				debugPhase = 1;
+			}
+			break;
 		case ',':
 			Serial.read();
 			break;
@@ -477,6 +492,12 @@ void setup()
     dxl.torqueEnable(4, 1);
     dxl.torqueEnable(5, 1);
 	servoHelper.SoftEstop();
+	enableCartesianContinousLoop = 0;
+	enableCartesianWaypointLoop = 0;
+	enableDebug = 0;
+	enableJointContinousLoop = 0;
+	enableJointWaypointLoop = 0;
+
 	Serial.println("INITIALIZED");
 }
 

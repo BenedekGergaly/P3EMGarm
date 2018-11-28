@@ -341,6 +341,8 @@ void ArmTrajectory::startContinousCartesianMove(array<double, 3> cartesianSpeedT
 	cartesianSpeed = cartesianSpeedT;
 	startTime = utilities.secondsDouble();
 	measureRateTempCounter = 0;
+	cartesianPhase = 0;
+	cartesianEndCounter = 0;
 	for (int i = 0; i < 3; i++)
 	{
 		output[i][0] = servoHelper->ReadPositionRad(i+1);
@@ -359,7 +361,7 @@ void ArmTrajectory::stopContinousCartesianMove()
 //WIP
 array<array<double, 3>, 3> ArmTrajectory::calculateContinousCartesianMove()
 {
-	int interpolatorRelativeRate = 0;
+	int interpolatorRelativeRate = 10;
 	if (measureRateTempCounter == 0)
 	{
 		measureRateTempTime = utilities.secondsDouble();
@@ -370,7 +372,7 @@ array<array<double, 3>, 3> ArmTrajectory::calculateContinousCartesianMove()
 		currentRate = utilities.secondsDouble() - measureRateTempTime;
 		measureRateTempCounter = -1;
 	}
-	else if(continousMoveFlag == 1)
+	else if(continousMoveFlag == true)
 	{
 		if (cartesianPhase == 0)
 		{
@@ -384,7 +386,7 @@ array<array<double, 3>, 3> ArmTrajectory::calculateContinousCartesianMove()
 			utilities.LogArray("cart2", cartesianPosition);
 			goalAngles = kinematics.InverseKinematics(utilities.ArrayToPoint(cartesianPosition)).SolutionOne; //elbow up
 			goalAngles[0] = adjustJoint1Angle(goalAngles[0], output[0][0]);
-			utilities.LogArray("kinematic solution", goalAngles);
+			utilities.LogArray("inv kinematic solution", goalAngles);
 			for (int i = 0; i < 3; i++)
 			{
 				//control.Log("old speed", output[i][1]);
@@ -394,17 +396,30 @@ array<array<double, 3>, 3> ArmTrajectory::calculateContinousCartesianMove()
 			}
 			//control.Pause();
 		}
-		//trajectory gen
-		for (int i = 0; i < 3; i++)
+		//check limits
+		if (int badJoint = checkJointOutOfBounds(goalAngles))
 		{
-			output[i][2] = goalAccelerations[i];
-			output[i][1] += goalAccelerations[i] * currentRate;
-			output[i][0] += output[i][1] * currentRate;
+			utilities.Log("[WARNING] Trajectory: At least this joint reached its limit", badJoint);
+			continousMoveFlag = false;
+			for (int i = 0; i < 3; i++)
+			{
+				output[i][2] = 0;
+				output[i][1] = 0;
+			}
+		}
+		else
+		{
+			//trajectory gen
+			for (int i = 0; i < 3; i++)
+			{
+				output[i][2] = goalAccelerations[i];
+				output[i][1] += goalAccelerations[i] * currentRate;
+				output[i][0] += output[i][1] * currentRate;
+			}
 		}
 
 		cartesianPhase++;
 		if (cartesianPhase == interpolatorRelativeRate) cartesianPhase = 0;
-		if (utilities.secondsDouble() - startTime > desiredTime) goalReachedFlag = true;
 
 		//control.LogArray("goal position", cartesianGoalPosition);
 		//control.LogArray("output[][] position", kinematics.ForwardKinematics(output[0][0], output[1][0], output[2][0]).getArray());
@@ -413,9 +428,14 @@ array<array<double, 3>, 3> ArmTrajectory::calculateContinousCartesianMove()
 
 		return output;
 	}
-	else if (continousMoveFlag == 0 && goalReachedFlag == 0)
+	else if (continousMoveFlag == false && goalReachedFlag == false)
 	{
-
+		double endWaitTime = 1;
+		cartesianEndCounter++;
+		if (cartesianEndCounter > endWaitTime / currentRate)
+		{
+			goalReachedFlag = true;
+		}
 	}
 	return output;
 }

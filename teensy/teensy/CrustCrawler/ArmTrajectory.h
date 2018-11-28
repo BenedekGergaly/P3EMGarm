@@ -59,12 +59,13 @@ private:
 	double tempTime;
 	array<double, 3> cartesianGoalPosition, cartesianSpeed, cartesianPosition, cartesianPositionNew, angles, angleDifference, cartesianDifference;
 	int cartesianPhase = 0;
+	int cartesianEndCounter = 0;
 
 	const double joint1Min = -1;
 	const double joint1Max = 5;
-	const double joint2Min = -1.57;
-	const double joint2Max = 1.57;
-	const double joint3Min = -1.57;
-	const double joint3Max = 1.57;
+	const double joint2Min = -1.95;
+	const double joint2Max = 1.95;
+	const double joint3Min = -1.95;
+	const double joint3Max = 1.95;
 };
 

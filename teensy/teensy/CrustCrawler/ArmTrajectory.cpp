@@ -333,7 +333,6 @@ array<array<double, 3>, 3> ArmTrajectory::calculateCartesian()
 
 //#######################################################################################################################
 
-//WIP
 void ArmTrajectory::startContinousCartesianMove(array<double, 3> cartesianSpeedT)
 {
 	continousMoveFlag = 1;
@@ -358,7 +357,6 @@ void ArmTrajectory::stopContinousCartesianMove()
 	continousMoveFlag = 0;
 }
 
-//WIP
 array<array<double, 3>, 3> ArmTrajectory::calculateContinousCartesianMove()
 {
 	int interpolatorRelativeRate = 10;
@@ -401,11 +399,6 @@ array<array<double, 3>, 3> ArmTrajectory::calculateContinousCartesianMove()
 		{
 			utilities.Log("[WARNING] Trajectory: At least this joint reached its limit", badJoint);
 			continousMoveFlag = false;
-			for (int i = 0; i < 3; i++)
-			{
-				output[i][2] = 0;
-				output[i][1] = 0;
-			}
 		}
 		else
 		{
@@ -430,7 +423,13 @@ array<array<double, 3>, 3> ArmTrajectory::calculateContinousCartesianMove()
 	}
 	else if (continousMoveFlag == false && goalReachedFlag == false)
 	{
+		//outputs the last valid values for x more seconds, then assumes goal is reached
 		double endWaitTime = 1;
+		for (int i = 0; i < 3; i++)
+		{
+			output[i][2] = 0;
+			output[i][1] = 0;
+		}
 		cartesianEndCounter++;
 		if (cartesianEndCounter > endWaitTime / currentRate)
 		{

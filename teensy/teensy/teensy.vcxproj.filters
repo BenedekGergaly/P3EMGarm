@@ -42,6 +42,12 @@
     <ClInclude Include="CrustCrawler\ArmTrajectory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CrustCrawler\Utilities.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CrustCrawler\ServoHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="servo.cpp">
@@ -63,6 +69,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CrustCrawler\ArmTrajectory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CrustCrawler\Utilities.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CrustCrawler\ServoHelper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

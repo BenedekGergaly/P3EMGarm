@@ -6,8 +6,8 @@
 void ArmDynamics::addGravity(const double theta[3], double tau[3]) 
 {
 	tau[0] += 0;
-	tau[1] += 0.8*g * (-sin(theta[1]) * l[1] * m[2] - sin(theta[1]) * lc[1] * m[1] - sin(theta[1] + theta[2]) * lc[2] * m[2]);
-	tau[2] += 0.8*g * lc[2] * m[2] * -sin(theta[1] + theta[2]);
+	tau[1] += 1*g * (-sin(theta[1]) * l[1] * m[2] - sin(theta[1]) * lc[1] * m[1] - sin(theta[1] + theta[2]) * lc[2] * m[2]);
+	tau[2] += 1*g * lc[2] * m[2] * -sin(theta[1] + theta[2]);
 }
 
 array<double, 3> ArmDynamics::ComputeOutputTorque(array<double, 3> controlAccelerations, array<double, 3> thetaFeedback, array<double, 3> dThetaFeedback)
@@ -17,8 +17,7 @@ array<double, 3> ArmDynamics::ComputeOutputTorque(array<double, 3> controlAccele
 	addInertia(thetaFeedback.data(), controlAccelerations.data(), tau);
 	addVelocity(thetaFeedback.data(), dThetaFeedback.data(), tau);
     addGravity(thetaFeedback.data(), tau);
-	//tau[2] *= 4;
-	addFriction(thetaFeedback.data(), tau);
+	addFriction(dThetaFeedback.data(), tau);
 
 	array<double, 3> returnArray = { tau[0], tau[1], tau[2]};
 	return returnArray;
@@ -119,6 +118,6 @@ void ArmDynamics::addVelocity(const double theta[3], const double dTheta[3], dou
 void ArmDynamics::addFriction(const double dTheta[3], double tau[3]) {
 	for (int i = 0; i < 3; ++i) {
 		if (dTheta[i] != 0)
-			tau[i] += copysign(0.08, dTheta[i]);
+			tau[i] += copysign(0.4, dTheta[i]); //calculated original 0.006
 	}
 }

@@ -8,6 +8,8 @@
 #include "CrustCrawler/ArmControl.h"
 #include "CrustCrawler/ArmTrajectory.h"
 #include "CrustCrawler/ArmDynamics.h"
+#include "CrustCrawler/Utilities.h"
+#include "CrustCrawler/ServoHelper.h"
 
 constexpr auto rest = 0;
 constexpr auto waveIn = 1;
@@ -29,7 +31,9 @@ bool enableJointWaypointLoop = false;
 bool enableJointContinousLoop = false;
 bool enableCartesianWaypointLoop = false;
 bool enableCartesianContinousLoop = false;
+bool enableDebug = false;
 int currentWaypointID = 1;
+int debugPhase = 1;
 
 array<double, 3> desiredAngles;
 array<double, 3> desiredAccelerations;
@@ -41,17 +45,19 @@ array<double, 3> continousAccelerations = {0,0,0};
 servo dxl;
 ArmKinematics kinematics;
 ArmControl control;
-ArmTrajectory trajectory;
+ArmTrajectory trajectory = ArmTrajectory(dxl);
 ArmDynamics dynamics;
+Utilities utilities;
+ServoHelper servoHelper = ServoHelper(dxl);
 
 using namespace std;
 
 void applyJointWaypointMove()
 {
-	array<double, 3> feedbackPosition = control.ReadPositionRadArray();
-	array<double, 3> feedbackVelocity = control.ReadVelocityRadArray();
-	control.LogArray("Current position", feedbackPosition);
-	control.LogArray("Current velocity", feedbackVelocity);
+	array<double, 3> feedbackPosition = servoHelper.ReadPositionRadArray();
+	array<double, 3> feedbackVelocity = servoHelper.ReadVelocityRadArray();
+	utilities.LogArray("Current position", feedbackPosition);
+	utilities.LogArray("Current velocity", feedbackVelocity);
 
 	array<array<double, 3>, 3> inputs = trajectory.calculate();
 	array<double, 3> desiredAngles, desiredSpeeds, desiredAccelerations;
@@ -63,17 +69,17 @@ void applyJointWaypointMove()
 	}
 
 	array<double, 3> torques = control.ComputeControlTorque(desiredAngles, desiredSpeeds, desiredAccelerations, feedbackPosition, feedbackVelocity);
-	control.LogArray("Torques", torques);
-	control.SendTorquesAllInOne(torques);
+	utilities.LogArray("Torques", torques);
+	servoHelper.SendTorquesAllInOne(torques);
 	Serial.println("=================");
 }
 
 void applyJointContinousMove()
 {
-	array<double, 3> feedbackPosition = control.ReadPositionRadArray();
-	array<double, 3> feedbackVelocity = control.ReadVelocityRadArray();
-	control.LogArray("Current position", feedbackPosition);
-	control.LogArray("Current velocity", feedbackVelocity);
+	array<double, 3> feedbackPosition = servoHelper.ReadPositionRadArray();
+	array<double, 3> feedbackVelocity = servoHelper.ReadVelocityRadArray();
+	utilities.LogArray("Current position", feedbackPosition);
+	utilities.LogArray("Current velocity", feedbackVelocity);
 
 	array<array<double, 3>, 3> inputs = trajectory.calculateContinousMove();
 	array<double, 3> desiredAngles, desiredSpeeds, desiredAccelerations;
@@ -84,20 +90,20 @@ void applyJointContinousMove()
 		desiredAccelerations[i] = inputs[i][2];
 	}
 	array<double, 3> torques = control.ComputeControlTorque(desiredAngles, desiredSpeeds, desiredAccelerations, feedbackPosition, feedbackVelocity);
-	control.LogArray("Torques", torques);
-	control.LogArray("Angles", desiredAngles);
-	control.LogArray("speeds", desiredSpeeds);
-	control.LogArray("accelerations", desiredAccelerations);
-	control.SendTorquesAllInOne(torques);
+	utilities.LogArray("Torques", torques);
+	utilities.LogArray("Angles", desiredAngles);
+	utilities.LogArray("speeds", desiredSpeeds);
+	utilities.LogArray("accelerations", desiredAccelerations);
+	servoHelper.SendTorquesAllInOne(torques);
 	Serial.println("=================");
 }
 
 void applyCartesianWaypointMove()
 {
-	array<double, 3> feedbackPosition = control.ReadPositionRadArray();
-	array<double, 3> feedbackVelocity = control.ReadVelocityRadArray();
-	control.LogArray("Current position", feedbackPosition);
-	control.LogArray("Current velocity", feedbackVelocity);
+	array<double, 3> feedbackPosition = servoHelper.ReadPositionRadArray();
+	array<double, 3> feedbackVelocity = servoHelper.ReadVelocityRadArray();
+	//control.LogArray("Current position", feedbackPosition);
+	//control.LogArray("Current velocity", feedbackVelocity);
 
 	array<array<double, 3>, 3> inputs = trajectory.calculateCartesian();
 	array<double, 3> desiredAngles, desiredSpeeds, desiredAccelerations;
@@ -108,11 +114,38 @@ void applyCartesianWaypointMove()
 		desiredAccelerations[i] = inputs[i][2];
 	}
 	array<double, 3> torques = control.ComputeControlTorque(desiredAngles, desiredSpeeds, desiredAccelerations, feedbackPosition, feedbackVelocity);
-	control.LogArray("Angles", desiredAngles);
-	control.LogArray("Speeds", desiredSpeeds);
-	control.LogArray("Accelerations", desiredAccelerations);
-	control.LogArray("Torques", torques);
-	control.SendTorquesAllInOne(torques);
+	//control.LogArray("Angles", desiredAngles);
+	//control.LogArray("Speeds", desiredSpeeds);
+	//control.LogArray("Accelerations", desiredAccelerations);
+	//control.LogArray("Torques", torques);
+	servoHelper.SendTorquesAllInOne(torques);
+	//Serial.println("=================");
+}
+
+void debug()
+{
+	array<double, 3> feedbackPosition = servoHelper.ReadPositionRadArray();
+	array<double, 3> feedbackVelocity = servoHelper.ReadVelocityRadArray();
+	utilities.LogArray("Current position", feedbackPosition);
+	utilities.LogArray("Current velocity", feedbackVelocity);
+	array<double, 3> desiredSpeeds = { 0,0,0 };
+	array<double, 3> desiredAngles = { 0,0,0 };
+	if (debugPhase == 1)
+	{
+		desiredAngles = { 0,0,0 };
+	}
+	else
+	{
+		desiredAngles = { 0,1.57, 0 };
+	}
+
+	array<double, 3> desiredAccelerations = { 0,0,0 };
+	array<double, 3> torques = control.ComputeControlTorque(desiredAngles, desiredSpeeds, desiredAccelerations, feedbackPosition, feedbackVelocity);
+	utilities.LogArray("Angles", desiredAngles);
+	utilities.LogArray("Speeds", desiredSpeeds);
+	utilities.LogArray("Accelerations", desiredAccelerations);
+	utilities.LogArray("Torques", torques);
+	servoHelper.SendTorquesAllInOne(torques);
 	Serial.println("=================");
 }
 
@@ -120,10 +153,12 @@ void printEEPROMvalues()
 {
     Serial.print("Frequency: ");
     Serial.println(cycleFrequency);
-	Serial.print("kp, kv: ");
+	Serial.print("kp, kv, kpi: ");
 	Serial.print(control.Kp);
 	Serial.print("   ");
-	Serial.println(control.Kv);
+	Serial.print(control.Kv);
+	Serial.print("   ");
+	Serial.println(control.Kpi);
 }
 
 void gripper(bool b) //1=close, 0=open
@@ -163,7 +198,7 @@ void enableTorqueForAll()
 	dxl.setOperatingMode(1, pwm);
 	dxl.setOperatingMode(2, pwm);
 	dxl.setOperatingMode(3, pwm);
-	//dxl.torqueEnable(1, 1);
+	dxl.torqueEnable(1, 1);
 	dxl.torqueEnable(2, 1);
 	dxl.torqueEnable(3, 1);
 }
@@ -200,7 +235,7 @@ void commandDecoder()
 		{
 			int id = Serial.parseInt();
 			Serial.print("[INFO] Main: Make sure servo is not in position mode!");
-			double position = control.ReadPositionRad(id);
+			double position = servoHelper.ReadPositionRad(id);
 			Serial.println(position);
 			break;
 		}
@@ -249,6 +284,15 @@ void commandDecoder()
 			control.Kv = temp;
 			break;
 		}
+		case 'c': //update Kpi
+		{
+			double temp = Serial.parseFloat();
+			Serial.print("new kpi is: ");
+			Serial.println(temp);
+			EEPROM.put(400, temp);
+			control.Kpi = temp;
+			break;
+		}
 		case 'k': //Joint waypoint mode
 		{
 			enableTorqueForAll();
@@ -275,15 +319,15 @@ void commandDecoder()
 			dxl.setOperatingMode(1, pwm);
 			dxl.setOperatingMode(2, pwm);
 			dxl.setOperatingMode(3, pwm);
-			array<double, 3> cartPos = kinematics.ForwardKinematics(control.ReadPositionRad(1), control.ReadPositionRad(2),
-				control.ReadPositionRad(3)).getArray();
-			control.LogArray("EE cartesian position", cartPos);
-			control.LogArray("Inverse kinematic solution 1: ", kinematics.InverseKinematics(trajectory.arrayToPoint(cartPos)).SolutionOne);
-			control.LogArray("Inverse kinematic solution 2: ", kinematics.InverseKinematics(trajectory.arrayToPoint(cartPos)).SolutionTwo);
+			array<double, 3> cartPos = kinematics.ForwardKinematics(servoHelper.ReadPositionRad(1), servoHelper.ReadPositionRad(2),
+				servoHelper.ReadPositionRad(3)).getArray();
+			utilities.LogArray("EE cartesian position", cartPos);
+			utilities.LogArray("Inverse kinematic solution 1: ", kinematics.InverseKinematics(utilities.ArrayToPoint(cartPos)).SolutionOne);
+			utilities.LogArray("Inverse kinematic solution 2: ", kinematics.InverseKinematics(utilities.ArrayToPoint(cartPos)).SolutionTwo);
 			break;
 		}
 		case 's': //stop
-			control.SoftEstop();
+			servoHelper.SoftEstop();
 			enableJointWaypointLoop = 0;
 			enableJointContinousLoop = 0;
 			break;
@@ -291,6 +335,19 @@ void commandDecoder()
 			dxl.torqueEnable(1, 0);
 			dxl.torqueEnable(2, 0);
 			dxl.torqueEnable(3, 0);
+			break;
+		case 'q':
+			enableDebug = true;
+			enableTorqueForAll();
+			control.integralValues = { 0,0,0 };
+			if (debugPhase == 1)
+			{
+				debugPhase = 2;
+			}
+			else
+			{
+				debugPhase = 1;
+			}
 			break;
 		case ',':
 			Serial.read();
@@ -343,7 +400,7 @@ void poseDecoder()
 		}
 		if (trajectory.goalReachedFlag)
 		{
-			trajectory.startContinousMove(control.ReadPositionRadArray(), continousAccelerations, continousSpeeds);
+			trajectory.startContinousMove(servoHelper.ReadPositionRadArray(), continousAccelerations, continousSpeeds);
 		}
 		else
 		{
@@ -370,7 +427,7 @@ void poseDecoder()
 		}
 		if (trajectory.goalReachedFlag)
 		{
-			trajectory.startContinousMove(control.ReadPositionRadArray(), continousAccelerations, continousSpeeds);
+			trajectory.startContinousMove(servoHelper.ReadPositionRadArray(), continousAccelerations, continousSpeeds);
 		}
 		else
 		{
@@ -387,27 +444,21 @@ void waypointIDdecoder()
 	switch (currentWaypointID)
 	{
 	case 1:
+		control.resetIntegral();
 		desiredAngles = { 0,-1.57,1.57 };
-		desiredAccelerations = { 3,15,15 };
-		currentAngles = control.ReadPositionRadArray();
+		desiredAccelerations = { 3,3,3 };
+		currentAngles = servoHelper.ReadPositionRadArray();
 		Serial.println(currentAngles[2]);
-		trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 1500);
+		trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 4000);
 		currentWaypointID += 1;
 		break;
 	case 2:
-		desiredAngles = { 0,0,0 };
-		desiredAccelerations = { 3,3,3 };
-		currentAngles = control.ReadPositionRadArray();
-		Serial.println(currentAngles[2]);
-		trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 3000);
-		currentWaypointID += 1;
-		break;
-	case 3:
+		control.resetIntegral();
 		desiredAngles = { 0,1.57,-1.57 };
-		desiredAccelerations = { 3,15,15 };
-		currentAngles = control.ReadPositionRadArray();
+		desiredAccelerations = { 3,3,3 };
+		currentAngles = servoHelper.ReadPositionRadArray();
 		Serial.println(currentAngles[2]);
-		trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 3000);
+		trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 4000);
 		currentWaypointID = 1;
 		break;
 	}
@@ -426,6 +477,7 @@ void setup()
     cycleTime = 1000000/cycleFrequency; //in microsec
 	EEPROM.get(200, control.Kp);
 	EEPROM.get(300, control.Kv);
+	EEPROM.get(400, control.Kpi);
 
     for (int i=0;i<5;i++)
     {
@@ -439,7 +491,13 @@ void setup()
     dxl.setOperatingMode(5, pwm);
     dxl.torqueEnable(4, 1);
     dxl.torqueEnable(5, 1);
-	control.SoftEstop();
+	servoHelper.SoftEstop();
+	enableCartesianContinousLoop = 0;
+	enableCartesianWaypointLoop = 0;
+	enableDebug = 0;
+	enableJointContinousLoop = 0;
+	enableJointWaypointLoop = 0;
+
 	Serial.println("INITIALIZED");
 }
 
@@ -479,5 +537,7 @@ void loop()
 		{
 			applyCartesianWaypointMove();
 		}
+
+		if (enableDebug) debug();
     }
 }

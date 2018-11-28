@@ -1,5 +1,5 @@
-function outputTorques = TorqueForwardDynamics(inputs)
-%TORQUEFORWARDDYNAMICS Summary of this function goes here
+function outputTorques = TorqueInverseDynamics(inputs)
+%TORQUEINVERSEDYNAMICS Summary of this function goes here
 %   Detailed explanation goes here
 
 ddTheta = [inputs(1); inputs(2); inputs(3)];
@@ -39,7 +39,7 @@ m33 = lc(3)^2*m(3)+I3(3, 3);
 
 M = [m11 m12 m13;
     m21 m22 m23;
-    m31 m32 m33];
+    m31 m32 m33]
 
 torques = torques + (M * ddTheta);
 
@@ -55,7 +55,7 @@ b33 = 0;
 
 B = [b11 b12 b13;
     b21 b22 b23;
-    b31 b32 b33];
+    b31 b32 b33]
 
 torques = torques + B * [dTheta(1) * dTheta(2); dTheta(1) * dTheta(3); dTheta(2) * dTheta(3)];
 
@@ -71,7 +71,7 @@ c33 = 0;
 
 C = [c11 c12 c13;
     c21 c22 c23;
-    c31 c32 c33];
+    c31 c32 c33]
 
 torques = torques + C * [dTheta(1)^2; dTheta(2)^2; dTheta(3)^2]
 

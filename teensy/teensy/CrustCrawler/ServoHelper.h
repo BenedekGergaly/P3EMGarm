@@ -7,7 +7,6 @@
 class ServoHelper
 {
 public:
-	ServoHelper();
 	ServoHelper(servo &dynamixel);
 	~ServoHelper();
 	bool CheckOverspeed(double speedLimit);
@@ -17,6 +16,8 @@ public:
 	double ReadVelocityRad(int id);
 	array<double, 3> ReadPositionRadArray();
 	array<double, 3> ReadVelocityRadArray();
+	void LEDsOn();
+	void LEDsOff();
 
 private:
 	servo *dynamixel;

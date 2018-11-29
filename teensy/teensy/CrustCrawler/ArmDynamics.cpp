@@ -118,6 +118,9 @@ void ArmDynamics::addVelocity(const double theta[3], const double dTheta[3], dou
 void ArmDynamics::addFriction(const double dTheta[3], double tau[3]) {
 	for (int i = 0; i < 3; ++i) {
 		if (dTheta[i] != 0)
-			tau[i] += copysign(0.0, dTheta[i]); //calculated original 0.006
+		{
+			tau[i] += copysign(0.006, dTheta[i]); //dry friction
+			tau[i] += copysign(0.012*dTheta[i], dTheta[i]); //viscous friction
+		}
 	}
 }

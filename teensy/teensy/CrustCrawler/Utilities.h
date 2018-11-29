@@ -4,6 +4,7 @@
 #include <cmath>
 #include <Arduino.h>
 #include "Models/Point3D.h"
+#include "servo.h"
 #define RESTART_ADDR       0xE000ED0C
 #define READ_RESTART()     (*(volatile uint32_t *)RESTART_ADDR)
 #define WRITE_RESTART(val) ((*(volatile uint32_t *)RESTART_ADDR) = (val))

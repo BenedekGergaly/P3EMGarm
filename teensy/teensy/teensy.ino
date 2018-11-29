@@ -157,11 +157,11 @@ void debug()
 	array<double, 3> desiredAngles = { 0,0,0 };
 	if (debugPhase == 1)
 	{
-		desiredAngles = { 0,0,0 };
+		desiredAngles = { 0,1.57,0 };
 	}
 	else
 	{
-		desiredAngles = { 0,0.785, 1.571 };
+		desiredAngles = { 1.57,1.57, -1.571 };
 	}
 
 	array<double, 3> desiredAccelerations = { 0,0,0 };
@@ -178,12 +178,9 @@ void printEEPROMvalues()
 {
     Serial.print("Frequency: ");
     Serial.println(cycleFrequency);
-	Serial.print("kp, kv, kpi: ");
-	Serial.print(control.Kp);
-	Serial.print("   ");
-	Serial.print(control.Kv);
-	Serial.print("   ");
-	Serial.println(control.Kpi);
+	utilities.LogArray("Kp", control.Kp);
+	utilities.LogArray("Kv", control.Kv);
+	utilities.LogArray("Ki", control.Ki);
 }
 
 void gripper(bool b) //1=close, 0=open
@@ -227,6 +224,7 @@ void enableTorqueForAll()
 	dxl.torqueEnable(2, 1);
 	dxl.torqueEnable(3, 1);
 	Serial.println("[INFO] Enabled torque for all servos");
+	servoHelper.LEDsOff();
 }
 
 void commandDecoder()
@@ -294,29 +292,35 @@ void commandDecoder()
 			break;
 		case 'n': //update Kp
 		{
-			double temp = Serial.parseFloat();
-			Serial.print("new kp is: ");
-			Serial.println(temp);
-			EEPROM.put(200, temp);
-			control.Kp = temp;
+			int joint = Serial.parseInt()-1;
+			Serial.read();
+			double value = Serial.parseFloat();
+			EEPROM.put(200 + joint * 10, value);
+			utilities.Log("Joint", joint + 1);
+			utilities.Log("Kp changed to", value);
+			control.Kp[joint] = value;
 			break;
 		}
 		case 'm': //update Kv
 		{
-			double temp = Serial.parseFloat();
-			Serial.print("new kv is: ");
-			Serial.println(temp);
-			EEPROM.put(300, temp);
-			control.Kv = temp;
+			int joint = Serial.parseInt() - 1;
+			Serial.read();
+			double value = Serial.parseFloat();
+			EEPROM.put(300 + joint * 10, value);
+			utilities.Log("Joint", joint + 1);
+			utilities.Log("Kv changed to", value);
+			control.Kv[joint] = value;
 			break;
 		}
-		case 'c': //update Kpi
+		case 'c': //update Ki
 		{
-			double temp = Serial.parseFloat();
-			Serial.print("new kpi is: ");
-			Serial.println(temp);
-			EEPROM.put(400, temp);
-			control.Kpi = temp;
+			int joint = Serial.parseInt() - 1;
+			Serial.read();
+			double value = Serial.parseFloat();
+			EEPROM.put(400 + joint * 10, value);
+			utilities.Log("Joint", joint + 1);
+			utilities.Log("Ki changed to", value);
+			control.Ki[joint] = value;
 			break;
 		}
 		case 'k': //Joint waypoint mode
@@ -361,6 +365,7 @@ void commandDecoder()
 			dxl.torqueEnable(1, 0);
 			dxl.torqueEnable(2, 0);
 			dxl.torqueEnable(3, 0);
+			servoHelper.LEDsOff();
 			break;
 		case 'q':
 			enableDebug = true;
@@ -518,14 +523,17 @@ void setup()
     Serial.begin(115200);
     Serial.setTimeout(100);
 
-    Serial1.begin(1000000);
+    Serial1.begin(3000000);
     Serial1.transmitterEnable(2);
 
     EEPROM.get(100,cycleFrequency);
     cycleTime = 1000000/cycleFrequency; //in microsec
-	EEPROM.get(200, control.Kp);
-	EEPROM.get(300, control.Kv);
-	EEPROM.get(400, control.Kpi);
+	for (int i = 0; i < 3; i++)
+	{
+		EEPROM.get(200 + i * 10, control.Kp[i]);
+		EEPROM.get(300 + i * 10, control.Kv[i]);
+		EEPROM.get(400 + i * 10, control.Ki[i]);
+	}
 
     for (int i=0;i<5;i++)
     {

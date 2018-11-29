@@ -1,8 +1,5 @@
 #include "ServoHelper.h"
 
-ServoHelper::ServoHelper()
-{
-}
 
 ServoHelper::ServoHelper(servo &dynamixel)
 {
@@ -49,6 +46,22 @@ array<double, 3> ServoHelper::ReadVelocityRadArray()
 		output[i] = utilities.ConvertVelocitySignal(vel);
 	}
 	return output;
+}
+
+void ServoHelper::LEDsOn()
+{
+	for (int i = 0; i < 5; i++)
+	{
+		dynamixel->setLED(i + 1, 1);
+	}
+}
+
+void ServoHelper::LEDsOff()
+{
+	for (int i = 0; i < 5; i++)
+	{
+		dynamixel->setLED(i + 1, 0);
+	}
 }
 
 void ServoHelper::SendTorquesAllInOne(array<double, 3> torques)
@@ -106,4 +119,5 @@ void ServoHelper::SoftEstop()
 		dynamixel->torqueEnable(j, 1);
 	}
 	Serial.println("[INFO] Control: SoftEstop has been called");
+	LEDsOn();
 }

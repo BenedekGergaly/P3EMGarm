@@ -13,9 +13,9 @@ time = inputs(16);
 %omega_n = 4.5;
 %kp = omega_n^2;
 %kv = 2 * omega_n;
-kp = [20 40 75];
-kv = [10 14 14];
-ki = [2 8 12];
+kp = [50 90 160];
+kv = [8 10 25];
+ki = [5 15 15];
 
 persistent lastTime;
 persistent integralValue1;

@@ -10,12 +10,12 @@ theta = [inputs(10); inputs(11); inputs(12)];
 dTheta = [inputs(13); inputs(14); inputs(15)];
 time = inputs(16);
 
-omega_n = 4.5;
+%omega_n = 4.5;
 %kp = omega_n^2;
 %kv = 2 * omega_n;
-kp = 40;
-kv = 15;
-ki = 3;
+kp = [20 40 75];
+kv = [10 14 14];
+ki = [2 8 12];
 
 persistent lastTime;
 persistent integralValue1;
@@ -39,15 +39,15 @@ accelerations = [0 0 0];
 % end
 positionError = (thetaDesired(1) - theta(1));
 integralValue1 = integralValue1 + positionError * (time - lastTime);
-accelerations(1) = (thetaDesired(1) - theta(1)) * kp + (dThetaDesired(1) - dTheta(1)) * kv + integralValue1 * ki + ddThetaDesired(1);
+accelerations(1) = (thetaDesired(1) - theta(1)) * kp(1) + (dThetaDesired(1) - dTheta(1)) * kv(1) + integralValue1 * ki(1) + ddThetaDesired(1);
 
 positionError = (thetaDesired(2) - theta(2));
 integralValue2 = integralValue2 + positionError * (time - lastTime);
-accelerations(2) = (thetaDesired(2) - theta(2)) * kp + (dThetaDesired(2) - dTheta(2)) * kv + integralValue2 * ki + ddThetaDesired(2);
+accelerations(2) = (thetaDesired(2) - theta(2)) * kp(2) + (dThetaDesired(2) - dTheta(2)) * kv(2) + integralValue2 * ki(2) + ddThetaDesired(2);
 
 positionError = (thetaDesired(3) - theta(3));
 integralValue3 = integralValue3 + positionError * (time - lastTime);
-accelerations(3) = (thetaDesired(3) - theta(3)) * kp + (dThetaDesired(3) - dTheta(3)) * kv + integralValue3 * ki + ddThetaDesired(3);
+accelerations(3) = (thetaDesired(3) - theta(3)) * kp(3) + (dThetaDesired(3) - dTheta(3)) * kv(3) + integralValue3 * ki(3) + ddThetaDesired(3);
 lastTime = time;
 
 y = accelerations; 

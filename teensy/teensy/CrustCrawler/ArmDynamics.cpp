@@ -117,7 +117,7 @@ void ArmDynamics::addFriction(const double dTheta[3], double tau[3]) {
 	for (int i = 0; i < 3; ++i) {
 		if (dTheta[i] != 0)
 		{
-			tau[i] += copysign(0.012*dTheta[i], dTheta[i]); //coulomb & viscous friction
+			tau[i] += copysign(0.006, dTheta[i]) + 0.012 * dTheta[i]; //coulomb & viscous friction
 		}
 	}
 }

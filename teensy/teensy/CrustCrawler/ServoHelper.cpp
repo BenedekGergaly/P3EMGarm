@@ -10,11 +10,13 @@ ServoHelper::~ServoHelper()
 {
 }
 
-double ServoHelper::ReadPositionRad(int id)
+double ServoHelper::ReadPositionRad(int id) //includes angle compensation
 {
 	int32_t pos;
 	dynamixel->readPosition(id, pos);
-	return utilities.ConvertPositionSignal(pos);
+	double angle = utilities.ConvertPositionSignal(pos);
+	if (angle > 2) return angle - 2 * PI;
+	else return angle;
 }
 
 double ServoHelper::ReadVelocityRad(int id)
@@ -29,9 +31,7 @@ array<double, 3> ServoHelper::ReadPositionRadArray()
 	array<double, 3> output;
 	for (int i = 0; i < 3; i++)
 	{
-		int32_t pos;
-		dynamixel->readPosition(i + 1, pos);
-		output[i] = utilities.ConvertPositionSignal(pos);
+		output[i] = ReadPositionRad(i + 1);
 	}
 	return output;
 }
@@ -69,7 +69,7 @@ void ServoHelper::SendTorquesAllInOne(array<double, 3> torques)
 	int stopFlag = false;
 	for (int i = 0; i < 3; i++)
 	{
-		if (abs(torques[i]) > 50)
+		if (abs(torques[i]) > 30)
 		{
 			Serial.print("[ERROR] Control: Overtorque on servo #");
 			Serial.println(i + 1);

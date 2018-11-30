@@ -349,11 +349,20 @@ void commandDecoder()
 			dxl.setOperatingMode(1, pwm);
 			dxl.setOperatingMode(2, pwm);
 			dxl.setOperatingMode(3, pwm);
+			array<double, 3> joint = servoHelper.ReadPositionRadArray();
+			utilities.LogArray("joints", joint);
 			array<double, 3> cartPos = kinematics.ForwardKinematics(servoHelper.ReadPositionRad(1), servoHelper.ReadPositionRad(2),
 				servoHelper.ReadPositionRad(3)).getArray();
 			utilities.LogArray("EE cartesian position", cartPos);
-			utilities.LogArray("Inverse kinematic solution 1: ", kinematics.InverseKinematics(utilities.ArrayToPoint(cartPos)).SolutionOne);
-			utilities.LogArray("Inverse kinematic solution 2: ", kinematics.InverseKinematics(utilities.ArrayToPoint(cartPos)).SolutionTwo);
+			array<double, 3> sol1, sol2;
+			sol1 = kinematics.InverseKinematics(utilities.ArrayToPoint(cartPos)).SolutionOne;
+			sol2 = kinematics.InverseKinematics(utilities.ArrayToPoint(cartPos)).SolutionTwo;
+			utilities.LogArray("unadjusted 1", sol1);
+			utilities.LogArray("unadjusted 2", sol2);
+			trajectory.adjustInverseKinematicAngles(sol1, joint);
+			trajectory.adjustInverseKinematicAngles(sol2, joint);
+			utilities.LogArray("adjusted 1", sol1);
+			utilities.LogArray("adjusted 2", sol2);
 			break;
 		}
 		case 's': //stop

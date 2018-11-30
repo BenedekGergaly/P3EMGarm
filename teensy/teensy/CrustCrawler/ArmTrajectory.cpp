@@ -217,7 +217,7 @@ void ArmTrajectory::setNewCartesianGoal(array<double, 3> goalPositionT, double d
 			cartesianPosition[j] += cartesianSpeed[i];
 		}
 		array<double, 3> solution = kinematics.InverseKinematics(utilities.ArrayToPoint(cartesianPosition)).SolutionOne;
-		solution[0] = adjustJoint1Angle(solution[0], angles[0]);
+		//solution[0] = adjustJoint1Angle(solution[0], angles[0]);
 		for (int j = 0; j < 3; j++)
 		{
 			if (isnan(solution[j]))
@@ -279,7 +279,7 @@ array<array<double, 3>, 3> ArmTrajectory::calculateCartesian()
 			}
 			utilities.LogArray("cart2", cartesianPosition);
 			goalAngles = kinematics.InverseKinematics(utilities.ArrayToPoint(cartesianPosition)).SolutionOne; //elbow up
-			goalAngles[0] = adjustJoint1Angle(goalAngles[0], output[0][0]);
+			//goalAngles[0] = adjustJoint1Angle(goalAngles[0], output[0][0]);
 			utilities.LogArray("kinematic solution", goalAngles);
 			for (int i = 0; i < 3; i++)
 			{
@@ -302,10 +302,10 @@ array<array<double, 3>, 3> ArmTrajectory::calculateCartesian()
 		if (cartesianPhase == interpolatorRelativeRate) cartesianPhase = 0;
 		if (utilities.secondsDouble() - startTime > desiredTime) goalReachedFlag = true;
 
-		//control.LogArray("goal position", cartesianGoalPosition);
-		//control.LogArray("output[][] position", kinematics.ForwardKinematics(output[0][0], output[1][0], output[2][0]).getArray());
-		//control.LogArray("measured position", kinematics.ForwardKinematics(control.ReadPositionRad(1), control.ReadPositionRad(2),
-		//	control.ReadPositionRad(3)).getArray());
+		utilities.LogArray("goal position", cartesianGoalPosition);
+		utilities.LogArray("output[][] position", kinematics.ForwardKinematics(output[0][0], output[1][0], output[2][0]).getArray());
+		utilities.LogArray("measured position", kinematics.ForwardKinematics(servoHelper->ReadPositionRad(1), servoHelper->ReadPositionRad(2),
+			servoHelper->ReadPositionRad(3)).getArray());
 
 		return output;
 	}
@@ -377,14 +377,19 @@ array<array<double, 3>, 3> ArmTrajectory::calculateContinousCartesianMove()
 			//interpolation
 			cartesianPosition = kinematics.ForwardKinematics(output[0][0], output[1][0], output[2][0]).getArray();
 			utilities.LogArray("cart1", cartesianPosition);
-			for (int i = 0; i < 3; i++)
-			{
-				cartesianPosition[i] += cartesianSpeed[i] * currentRate * interpolatorRelativeRate;
-			}
+			//for (int i = 0; i < 3; i++)
+			//{
+			//	cartesianPosition[i] += cartesianSpeed[i] * currentRate * interpolatorRelativeRate;
+			//}
 			utilities.LogArray("cart2", cartesianPosition);
-			goalAngles = kinematics.InverseKinematics(utilities.ArrayToPoint(cartesianPosition)).SolutionOne; //elbow up
-			goalAngles[0] = adjustJoint1Angle(goalAngles[0], output[0][0]);
+			goalAngles = kinematics.InverseKinematics(utilities.ArrayToPoint(cartesianPosition)).SolutionOne; //maybe need logic to decide solotion 1 vs 2
+			utilities.LogArray("undajusted 1", goalAngles);
+			array<double, 3> goalAngles2 = kinematics.InverseKinematics(utilities.ArrayToPoint(cartesianPosition)).SolutionTwo;
+			utilities.LogArray("unadjusted 2", goalAngles2);
+			//goalAngles[0] = adjustJoint1Angle(goalAngles[0], output[0][0]);
 			utilities.LogArray("inv kinematic solution", goalAngles);
+			servoHelper->SoftEstop();
+			utilities.Pause();
 			for (int i = 0; i < 3; i++)
 			{
 				//control.Log("old speed", output[i][1]);
@@ -414,10 +419,10 @@ array<array<double, 3>, 3> ArmTrajectory::calculateContinousCartesianMove()
 		cartesianPhase++;
 		if (cartesianPhase == interpolatorRelativeRate) cartesianPhase = 0;
 
-		//control.LogArray("goal position", cartesianGoalPosition);
-		//control.LogArray("output[][] position", kinematics.ForwardKinematics(output[0][0], output[1][0], output[2][0]).getArray());
-		//control.LogArray("measured position", kinematics.ForwardKinematics(control.ReadPositionRad(1), control.ReadPositionRad(2),
-		//	control.ReadPositionRad(3)).getArray());
+		utilities.LogArray("goal position", cartesianGoalPosition);
+		utilities.LogArray("output[][] position", kinematics.ForwardKinematics(output[0][0], output[1][0], output[2][0]).getArray());
+		utilities.LogArray("measured position", kinematics.ForwardKinematics(servoHelper->ReadPositionRad(1), servoHelper->ReadPositionRad(2),
+			servoHelper->ReadPositionRad(3)).getArray());
 
 		return output;
 	}
@@ -448,21 +453,36 @@ int ArmTrajectory::checkJointOutOfBounds(array<double, 3> input)
 	return 0;
 }
 
-double ArmTrajectory::adjustJoint1Angle(double solution, double reference)
+void ArmTrajectory::adjustInverseKinematicAngles(array<double, 3>& solution, array<double, 3> reference)
 {
-	if (reference - solution > 3)
+	if (abs(reference[0] - solution[0]) > 2.8 && abs(reference[0] - solution[0]) < 3.4)
 	{
-		return solution + 2 * PI;
+		if (solution[0] > 0) solution[0] -= PI;
+		else solution[0] += PI;
+		solution[1] *= -1;
+		solution[2] *= -1;
 	}
-	else if (reference - solution < -3)
+	if (abs(reference[0] - solution[0]) > 5.8)
 	{
-		return solution - 2 * PI;
-	}
-	else
-	{
-		return solution;
+
 	}
 }
+
+//double ArmTrajectory::adjustJoint1Angle(double solution, double reference)
+//{
+//	if (reference - solution > 3)
+//	{
+//		return solution + 2 * PI;
+//	}
+//	else if (reference - solution < -3)
+//	{
+//		return solution - 2 * PI;
+//	}
+//	else
+//	{
+//		return solution;
+//	}
+//}
 
 
 

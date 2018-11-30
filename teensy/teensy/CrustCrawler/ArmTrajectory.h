@@ -39,7 +39,7 @@ public:
 	bool continousMoveFlag = 0;
 
 	int checkJointOutOfBounds(array<double, 3> input); //returns 0 if okay, joint number if failed
-	double adjustJoint1Angle(double solution, double reference); //makes sure angles over 180 don't become the opposite sign during inverse kinematics
+	void adjustInverseKinematicAngles(array<double, 3> &solution, array<double, 3> reference); //makes sure angles over 180 don't become the opposite sign during inverse kinematics
 
 	double time = 2500; //debug stuff
 

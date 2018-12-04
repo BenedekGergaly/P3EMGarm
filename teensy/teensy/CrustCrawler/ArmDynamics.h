@@ -9,15 +9,14 @@
 using namespace std;
 
 class ArmDynamics {
-
 public:
 	array<double, 3> ComputeOutputTorque(array<double, 3> controlAccelerations, array<double, 3> thetaDesired, array<double, 3> dThetaDesired);
 
 private:
-	static const double g = 9.815;
+	const double g = 9.815;
 
 	// Indexes
-	static const short i_11 = 0, i_12 = 1, i_13 = 2, i_21 = 3, i_22 = 4, i_23 = 5, i_31 = 6, i_32 = 7, i_33 = 8;
+	const short i_11 = 0, i_12 = 1, i_13 = 2, i_21 = 3, i_22 = 4, i_23 = 5, i_31 = 6, i_32 = 7, i_33 = 8;
 
 	const double l[3] = { 0.067, 0.224, 0.149 }; // [m] Link lengths
 	const double lc[3] = { 0.04, 0.17670, 0.13468 }; // [m] Lengths to CoM

@@ -112,7 +112,7 @@ bool ServoHelper::CheckOverspeed(double speedLimit)
 
 void ServoHelper::SoftEstop()
 {
-	for (int j = 1; j < 4; j++)
+	for (int j = 1; j <= 3; j++)
 	{
 		dynamixel->torqueEnable(j, 0);
 		dynamixel->setOperatingMode(j, 3);

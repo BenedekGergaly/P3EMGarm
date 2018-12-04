@@ -51,43 +51,12 @@ KinematicInverseAngles ArmKinematics::InverseKinematics(Point3D<double> coordina
 	return angles;
 }
 
-Point3D<double> ArmKinematics::getT14Pos(double theta1, Point3D<double>& coordinates) const
+Point3D<double> ArmKinematics::getT14Pos(double theta, Point3D<double>& coordinates) const
 {
-	double x = coordinates.getX()*cos(theta1) + coordinates.getY()*sin(theta1);
-	double y = coordinates.getY()*cos(theta1) - coordinates.getX()*sin(theta1);
+	double x = coordinates.getX()*cos(theta) + coordinates.getY()*sin(theta);
+	double y = coordinates.getY()*cos(theta) - coordinates.getX()*sin(theta);
 	double z = -237 + coordinates.getZ();
 	Point3D<double> points = Point3D<double>(x, y, z);
 
 	return points;
-}
-
-//OBSOLETE
-double ** ArmKinematics::getT14Matrix(double theta1, Point3D<double>& coordinates) const
-{
-	//           ROW COL
-	double** matrix = new double*[4]{
-		new double[4]{ 0, 0, 0, 0 },
-		new double[4]{ 0, 0, 0, 0 },
-		new double[4]{ 0, 0, 0, 0 },
-		new double[4]{ 0, 0, 0, 0 }
-	};
-
-	matrix[0][0] = cos(theta1);
-	matrix[0][1] = sin(theta1);
-	matrix[0][2] = 0;
-	matrix[0][3] = coordinates.getX()*cos(theta1) + coordinates.getY()*sin(theta1);
-	matrix[1][0] = -sin(theta1);
-	matrix[1][1] = cos(theta1);
-	matrix[1][2] = 0;
-	matrix[1][3] = coordinates.getY()*cos(theta1) - coordinates.getX()*sin(theta1);
-	matrix[2][0] = 0;
-	matrix[2][1] = 0;
-	matrix[2][2] = 1;
-	matrix[2][3] = -240 + coordinates.getZ();
-	matrix[3][0] = 0;
-	matrix[3][1] = 0;
-	matrix[3][2] = 0;
-	matrix[3][3] = 1;
-
-	return matrix;
 }

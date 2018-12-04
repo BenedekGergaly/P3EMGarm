@@ -161,7 +161,7 @@ array<array<double, 3>, 3> ArmTrajectory::calculateContinousMove()
 		}
 		return output;
 	}
-	else if (continousMoveFlag == 0 /*&& goalReachedFlag == 0*/)//end curve
+	else if (continousMoveFlag == 0)//end curve
 	{
 		int stopCheck = 0;
 		for (int i = 0; i < 3; i++)

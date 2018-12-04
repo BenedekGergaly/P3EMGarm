@@ -9,7 +9,6 @@
 using namespace std;
 
 class ArmDynamics {
-
 public:
 	array<double, 3> ComputeOutputTorque(array<double, 3> controlAccelerations, array<double, 3> thetaDesired, array<double, 3> dThetaDesired);
 

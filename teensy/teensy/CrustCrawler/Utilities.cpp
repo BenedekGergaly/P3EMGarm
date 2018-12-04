@@ -1,6 +1,5 @@
 #include "Utilities.h"
 
-
 Utilities::Utilities()
 {
 }
@@ -40,12 +39,12 @@ void Utilities::Pause()
 
 double Utilities::millisDouble()
 {
-	return (double)micros() / 1000;
+	return (double)micros() / 1000.0;
 }
 
 double Utilities::secondsDouble()
 {
-	return millisDouble() / 1000;
+	return millisDouble() / 1000.0;
 }
 
 Point3D<double> Utilities::ArrayToPoint(array<double, 3> a)
@@ -69,25 +68,25 @@ double Utilities::ComputeOutputPWM(double desiredTorque, ServoType servoType)
 {
 	switch (servoType)
 	{
-	case ServoType::MX64:
-		if (desiredTorque >= 0)
-		{
-			return lround(209.4336*desiredTorque);
-		}
-		else
-		{
-			return lround(196.95*desiredTorque);
-		}
-	case ServoType::MX106:
-		if (desiredTorque >= 0)
-		{
-			return lround(123.6096*desiredTorque);
-		}
-		else
-		{
-			return lround(131.4082*desiredTorque);
-		}
-	default:
-		return 0.0;
+		case ServoType::MX64:
+			if (desiredTorque >= 0)
+			{
+				return lround(209.4336*desiredTorque);
+			}
+			else
+			{
+				return lround(196.95*desiredTorque);
+			}
+		case ServoType::MX106:
+			if (desiredTorque >= 0)
+			{
+				return lround(123.6096*desiredTorque);
+			}
+			else
+			{
+				return lround(131.4082*desiredTorque);
+			}
+		default:
+			return 0.0;
 	}
 }

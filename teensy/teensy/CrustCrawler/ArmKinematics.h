@@ -15,8 +15,7 @@ public:
 	Point3D<double> ForwardKinematics(double theta1, double theta2, double theta3);
 	KinematicInverseAngles InverseKinematics(Point3D<double> coordinates) const;
 private:
-	double** getT14Matrix(double theta1, Point3D<double> &coordinates) const;
-	Point3D<double> getT14Pos(double theta1, Point3D<double> &coordinates) const;
+	Point3D<double> getT14Pos(double theta, Point3D<double> &coordinates) const;
 
 	const double length1 = 67.0; //base to zero
 	const double length2 = 224.0; //1 to 2

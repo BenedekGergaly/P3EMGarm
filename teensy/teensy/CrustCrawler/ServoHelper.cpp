@@ -1,6 +1,7 @@
 #include "ServoHelper.h"
 
 
+
 ServoHelper::ServoHelper(servo &dynamixel)
 {
 	this->dynamixel = &dynamixel;
@@ -83,9 +84,12 @@ void ServoHelper::SendTorquesAllInOne(array<double, 3> torques)
 		SoftEstop();
 		utilities.Pause();
 	}
-	double pwm1 = utilities.ComputeOutputPWM(torques[0], ServoType::MX106);
-	double pwm2 = utilities.ComputeOutputPWM(torques[1], ServoType::MX106);
-	double pwm3 = utilities.ComputeOutputPWM(torques[2], ServoType::MX64);
+	int pwm1 = utilities.ComputeOutputPWM(torques[0], ServoType::MX106);
+	int pwm2 = utilities.ComputeOutputPWM(torques[1], ServoType::MX106);
+	int pwm3 = utilities.ComputeOutputPWM(torques[2], ServoType::MX64);
+	pwm1 = constrain(pwm1, -885, 885);
+	pwm2 = constrain(pwm2, -885, 885);
+	pwm3 = constrain(pwm3, -885, 885);
 	dynamixel->setGoalPwm(1, pwm1);
 	dynamixel->setGoalPwm(2, pwm2);
 	dynamixel->setGoalPwm(3, pwm3);

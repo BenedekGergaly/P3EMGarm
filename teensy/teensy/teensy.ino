@@ -57,8 +57,6 @@ void applyJointWaypointMove()
 {
 	array<double, 3> feedbackPosition = servoHelper.ReadPositionRadArray();
 	array<double, 3> feedbackVelocity = servoHelper.ReadVelocityRadArray();
-	utilities.LogArray("Current position", feedbackPosition);
-	utilities.LogArray("Current velocity", feedbackVelocity);
 
 	array<array<double, 3>, 3> inputs = trajectory.calculate();
 	array<double, 3> desiredAngles, desiredSpeeds, desiredAccelerations;
@@ -68,6 +66,10 @@ void applyJointWaypointMove()
 		desiredSpeeds[i] = inputs[i][1];
 		desiredAccelerations[i] = inputs[i][2];
 	}
+	utilities.LogArray("Current position", feedbackPosition);
+	utilities.LogArray("desired position", desiredAngles);
+	utilities.LogArray("Current velocity", feedbackVelocity);
+	utilities.LogArray("desired velocity", desiredSpeeds);
 
 	array<double, 3> torques = control.ComputeControlTorque(desiredAngles, desiredSpeeds, desiredAccelerations, feedbackPosition, feedbackVelocity);
 	utilities.LogArray("Torques", torques);
@@ -157,11 +159,11 @@ void debug()
 	array<double, 3> desiredAngles = { 0,0,0 };
 	if (debugPhase == 1)
 	{
-		desiredAngles = { 0,1.57,0 };
+		desiredAngles = { 0,0,0 };
 	}
 	else
 	{
-		desiredAngles = { 1.57,1.57, -1.571 };
+		desiredAngles = { 0,1.57, -1.57 };
 	}
 
 	array<double, 3> desiredAccelerations = { 0,0,0 };
@@ -369,6 +371,9 @@ void commandDecoder()
 			servoHelper.SoftEstop();
 			enableJointWaypointLoop = 0;
 			enableJointContinousLoop = 0;
+			enableCartesianWaypointLoop = 0;
+			enableCartesianContinousLoop = 0;
+			enableDebug = 0;
 			break;
 		case 'l': //loosen
 			dxl.torqueEnable(1, 0);
@@ -428,8 +433,8 @@ void poseDecoder()
 			enableTorqueForAll();
 			enableFlag = true;
 		}
-		enableCartesianContinousLoop = true;
-		//enableJointContinousLoop = true;
+		//enableCartesianContinousLoop = true;
+		enableJointContinousLoop = true;
 		pose = none;
 		switch (currentControlAxis)
 		{
@@ -451,8 +456,8 @@ void poseDecoder()
 		}
 		if (trajectory.goalReachedFlag)
 		{
-			//trajectory.startContinousMove(servoHelper.ReadPositionRadArray(), continousAccelerations, continousSpeeds);
-			trajectory.startContinousCartesianMove(cartesianContinousSpeeds);
+			trajectory.startContinousMove(servoHelper.ReadPositionRadArray(), continousAccelerations, continousSpeeds);
+			//trajectory.startContinousCartesianMove(cartesianContinousSpeeds);
 		}
 		else
 		{
@@ -465,9 +470,9 @@ void poseDecoder()
 			enableTorqueForAll();
 			enableFlag = true;
 		}
-		enableCartesianContinousLoop = true;
+		//enableCartesianContinousLoop = true;
 		pose = none;
-		//enableJointContinousLoop = true;
+		enableJointContinousLoop = true;
 		switch (currentControlAxis)
 		{
 		case 1:
@@ -488,8 +493,8 @@ void poseDecoder()
 		}
 		if (trajectory.goalReachedFlag)
 		{
-			//trajectory.startContinousMove(servoHelper.ReadPositionRadArray(), continousAccelerations, continousSpeeds);
-			trajectory.startContinousCartesianMove(cartesianContinousSpeeds);
+			trajectory.startContinousMove(servoHelper.ReadPositionRadArray(), continousAccelerations, continousSpeeds);
+			//trajectory.startContinousCartesianMove(cartesianContinousSpeeds);
 		}
 		else
 		{
@@ -508,10 +513,10 @@ void waypointIDdecoder()
 	case 1:
 		control.resetIntegral();
 		desiredAngles = { 0,-1.57,1.57 };
-		desiredAccelerations = { 3,3,3 };
+		desiredAccelerations = { 5,5,5 };
 		currentAngles = servoHelper.ReadPositionRadArray();
 		Serial.println(currentAngles[2]);
-		trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 4000);
+		trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 2000);
 		currentWaypointID += 1;
 		break;
 	case 2:
@@ -520,7 +525,7 @@ void waypointIDdecoder()
 		desiredAccelerations = { 3,3,3 };
 		currentAngles = servoHelper.ReadPositionRadArray();
 		Serial.println(currentAngles[2]);
-		trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 4000);
+		trajectory.setNewGoal(currentAngles, desiredAngles, desiredAccelerations, 10000);
 		currentWaypointID = 1;
 		break;
 	}

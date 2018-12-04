@@ -15,7 +15,7 @@ double ServoHelper::ReadPositionRad(int id) //includes angle compensation
 	int32_t pos;
 	dynamixel->readPosition(id, pos);
 	double angle = utilities.ConvertPositionSignal(pos);
-	if (angle > 2) return angle - 2 * PI;
+	if (angle > 2.2 && id != 1) return angle - 2 * PI;
 	else return angle;
 }
 
@@ -23,6 +23,7 @@ double ServoHelper::ReadVelocityRad(int id)
 {
 	int32_t vel;
 	dynamixel->readVelocity(id, vel);
+	if(vel)
 	return utilities.ConvertVelocitySignal(vel);
 }
 

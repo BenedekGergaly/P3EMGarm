@@ -111,8 +111,8 @@ void ArmTrajectory::startContinousMove(array<double, 3> currentAngles, array<dou
 	goalAccelerations = goalAccelerationsT;
 	startAngles = currentAngles;
 	goalSpeeds = goalVelocityT;
-	startTime = utilities.millisDouble()/1000;
-	measureRateTempCounter = 0;
+	lastTime = utilities.secondsDouble();
+	startTime = utilities.secondsDouble();
 	for (int i = 0; i < 3; i++)
 	{
 		output[i][0] = startAngles[i];
@@ -128,21 +128,13 @@ void ArmTrajectory::stopContinousMove()
 
 array<array<double, 3>, 3> ArmTrajectory::calculateContinousMove()
 {
-	if (measureRateTempCounter == 0)
-	{
-		measureRateTempTime = utilities.millisDouble() / 1000;
-		measureRateTempCounter++;
-	}
-	else if (measureRateTempCounter == 1)
-	{
-		currentRate = utilities.millisDouble() / 1000 - measureRateTempTime;
-		measureRateTempCounter = -1;
-	}
-	else if (continousMoveFlag == 1) //start and middle curve
+	elapsedTime = utilities.secondsDouble() - lastTime;
+	lastTime = utilities.secondsDouble();
+	if (continousMoveFlag == 1) //start and middle curve
 	{
 		for (int i = 0; i < 3; i++)
 		{
-			output[i][0] = output[i][0] + (output[i][1] * currentRate);
+			output[i][0] = output[i][0] + (output[i][1] * elapsedTime);
 			if (abs(output[i][1]) < abs(goalSpeeds[i]))
 			{
 				output[i][1] = (utilities.millisDouble() / 1000 - startTime) * goalAccelerations[i];
@@ -174,15 +166,20 @@ array<array<double, 3>, 3> ArmTrajectory::calculateContinousMove()
 			}
 			else //not stopped yet
 			{
-				output[i][0] = output[i][0] + (output[i][1] * currentRate);
-				output[i][1] = output[i][1] - (currentRate*goalAccelerations[i]);
+				output[i][0] = output[i][0] + (output[i][1] * elapsedTime);
+				output[i][1] = output[i][1] - (elapsedTime*goalAccelerations[i]);
 				output[i][2] = -goalAccelerations[i];
 			}
 		}
 		if (stopCheck == 3)
 		{
 			goalReachedFlag = 1;
-			Serial.println("[INFO] Trajectory: All joints stopped");
+			static bool log = 1;
+			if (log)
+			{
+				Serial.println("[INFO] Trajectory: All joints stopped");
+				log = 0;
+			}
 		}
 		return output;
 	}
@@ -464,6 +461,16 @@ void ArmTrajectory::adjustInverseKinematicAngles(array<double, 3>& solution, arr
 		solution[1] *= -1;
 		solution[2] *= -1;
 	}
+}
+
+void ArmTrajectory::printDebug()
+{
+	utilities.Log("currentrate", currentRate);
+	utilities.Log("contMovFlag", continousMoveFlag);
+	utilities.Log("goalReachedFlag", goalReachedFlag);
+	utilities.LogArray("TgoalAcc", goalAccelerations);
+	utilities.LogArray("TstartAng", startAngles);
+	utilities.LogArray("TgoalSpeed", goalSpeeds);
 }
 
 //double ArmTrajectory::adjustJoint1Angle(double solution, double reference)

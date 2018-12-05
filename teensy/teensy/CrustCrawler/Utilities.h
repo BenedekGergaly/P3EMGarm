@@ -28,6 +28,8 @@ public:
 	double ConvertVelocitySignal(int16_t signal);
 	double ConvertPositionSignal(int16_t signal);
 	double ComputeOutputPWM(double desiredTorque, ServoType servoType);
+	
+	bool compareArraysMaxDifference(array<double, 3> array1, array<double, 3> array2, double maxDifference);
 
 private:
 	const double VELOCITY_UNIT = 0.023980823895; //radian/second pr. value

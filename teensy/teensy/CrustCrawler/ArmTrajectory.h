@@ -42,6 +42,7 @@ public:
 	void adjustInverseKinematicAngles(array<double, 3> &solution, array<double, 3> reference); //makes sure angles over 180 don't become the opposite sign during inverse kinematics
 
 	double time = 2500; //debug stuff
+	void printDebug();
 
 
 private:
@@ -57,15 +58,16 @@ private:
 	double measureRateTempTime, measureRateTempCounter;
 	double currentRate;
 	double tempTime;
+	double lastTime, elapsedTime;
 	array<double, 3> cartesianGoalPosition, cartesianSpeed, cartesianPosition, cartesianPositionNew, angles, angleDifference, cartesianDifference;
 	int cartesianPhase = 0;
 	int cartesianEndCounter = 0;
 
 	const double joint1Min = -1;
 	const double joint1Max = 5;
-	const double joint2Min = -1.95;
-	const double joint2Max = 1.95;
-	const double joint3Min = -1.95;
-	const double joint3Max = 1.95;
+	const double joint2Min = -2;
+	const double joint2Max = 2;
+	const double joint3Min = -2;
+	const double joint3Max = 2;
 };
 

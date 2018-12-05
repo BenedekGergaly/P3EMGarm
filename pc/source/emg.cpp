@@ -132,6 +132,9 @@ int main(int argc, char** argv)
 			std::cout << "sent: " << command << std::endl;
 			collector.pose = "";
 		}
+		//char incomingBuffer[200];
+		//teensy.readSerialPort(incomingBuffer, 200);
+		//std::cout << incomingBuffer;
     }
 
     } catch (const std::exception& e) {

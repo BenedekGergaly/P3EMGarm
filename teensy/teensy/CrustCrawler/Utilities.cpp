@@ -29,11 +29,23 @@ void Utilities::Log(String text, double data)
 
 void Utilities::Pause()
 {
+	bool f = 1;
 	Serial.println("Paused. Send r to resume or x to reset.");
-	while (!Serial.available());
-	if (Serial.read() == 'x')
+	while (f)
 	{
-		WRITE_RESTART(0x5FA0004);
+		while (!Serial.available());
+		if (Serial.peek() == 'x')
+		{
+			WRITE_RESTART(0x5FA0004);
+		}
+		else if (Serial.peek() == 'r')
+		{
+			f = 0;
+		}
+		else
+		{
+			Serial.read();
+		}
 	}
 }
 
@@ -89,4 +101,13 @@ double Utilities::ComputeOutputPWM(double desiredTorque, ServoType servoType)
 		default:
 			return 0.0;
 	}
+}
+
+bool Utilities::compareArraysMaxDifference(array<double, 3> array1, array<double, 3> array2, double maxDifference)
+{
+	for (int i = 0; i < 3; i++)
+	{
+		if (abs(array1[i] - array2[i]) > maxDifference) return 1;
+	}
+	return 0;
 }

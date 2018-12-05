@@ -20,6 +20,8 @@ constexpr auto doubleTap = 5;
 constexpr auto none = -1;
 constexpr auto position = 3;
 constexpr auto pwm = 16;
+#define CARTESIAN 0
+#define JOINT 1
 
 int pose = none; //rest, waveIn, waveOut, fist, fingerSpread, doubleTap
 int currentControlAxis = 3; //1, 2, 3 = x, y, z mode
@@ -34,6 +36,7 @@ bool enableCartesianContinousLoop = false;
 bool enableDebug = false;
 int currentWaypointID = 1;
 int debugPhase = 1;
+int controlMode = JOINT;
 
 array<double, 3> desiredAngles;
 array<double, 3> desiredAccelerations;
@@ -42,6 +45,8 @@ array<double, 3> currentAngles;
 array<double, 3> continousSpeeds = {0,0,0};
 array<double, 3> continousAccelerations = {0,0,0};
 array<double, 3> cartesianContinousSpeeds = { 0,0,0 };
+
+array<double, 3> userWaypoint = { 0,0,0 };
 
 servo dxl;
 ArmKinematics kinematics;
@@ -66,23 +71,29 @@ void applyJointWaypointMove()
 		desiredSpeeds[i] = inputs[i][1];
 		desiredAccelerations[i] = inputs[i][2];
 	}
-	utilities.LogArray("Current position", feedbackPosition);
-	utilities.LogArray("desired position", desiredAngles);
-	utilities.LogArray("Current velocity", feedbackVelocity);
-	utilities.LogArray("desired velocity", desiredSpeeds);
+
+	//utilities.LogArray("Current position", feedbackPosition);
+	//utilities.LogArray("desired position", desiredAngles);
+	//utilities.LogArray("Current velocity", feedbackVelocity);
+	//utilities.LogArray("desired velocity", desiredSpeeds);
 
 	array<double, 3> torques = control.ComputeControlTorque(desiredAngles, desiredSpeeds, desiredAccelerations, feedbackPosition, feedbackVelocity);
-	utilities.LogArray("Torques", torques);
+	//utilities.LogArray("Torques", torques);
 	servoHelper.SendTorquesAllInOne(torques);
-	Serial.println("=================");
+	//Serial.println("=================");
+	if (trajectory.goalReachedFlag)
+	{
+		enableJointWaypointLoop = false;
+		enableJointContinousLoop = true;
+	}
 }
 
 void applyJointContinousMove()
 {
 	array<double, 3> feedbackPosition = servoHelper.ReadPositionRadArray();
 	array<double, 3> feedbackVelocity = servoHelper.ReadVelocityRadArray();
-	utilities.LogArray("Current position", feedbackPosition);
-	utilities.LogArray("Current velocity", feedbackVelocity);
+	//utilities.LogArray("Current position", feedbackPosition);
+	//utilities.LogArray("Current velocity", feedbackVelocity);
 
 	array<array<double, 3>, 3> inputs = trajectory.calculateContinousMove();
 	array<double, 3> desiredAngles, desiredSpeeds, desiredAccelerations;
@@ -93,12 +104,24 @@ void applyJointContinousMove()
 		desiredAccelerations[i] = inputs[i][2];
 	}
 	array<double, 3> torques = control.ComputeControlTorque(desiredAngles, desiredSpeeds, desiredAccelerations, feedbackPosition, feedbackVelocity);
-	utilities.LogArray("Torques", torques);
-	utilities.LogArray("Angles", desiredAngles);
-	utilities.LogArray("speeds", desiredSpeeds);
-	utilities.LogArray("accelerations", desiredAccelerations);
+	//utilities.LogArray("Torques", torques);
+	//utilities.LogArray("Angles", desiredAngles);
+	//utilities.LogArray("speeds", desiredSpeeds);
+	//utilities.LogArray("accelerations", desiredAccelerations);
 	servoHelper.SendTorquesAllInOne(torques);
-	Serial.println("=================");
+	//Serial.println("=================");
+	if (servoHelper.CheckOverspeed(1.0))
+	{
+		servoHelper.LEDsOn();
+		delay(20000);
+		utilities.LogArray("Current position", feedbackPosition);
+		utilities.LogArray("Current velocity", feedbackVelocity);
+		utilities.LogArray("Torques", torques);
+		utilities.LogArray("desiredAngles", desiredAngles);
+		utilities.LogArray("desuredSpeeds", desiredSpeeds);
+		utilities.LogArray("desiredAccelerations", desiredAccelerations);
+		trajectory.printDebug();
+	}
 }
 
 void applyCartesianWaypointMove()
@@ -185,9 +208,9 @@ void printEEPROMvalues()
 	utilities.LogArray("Ki", control.Ki);
 }
 
-void gripper(bool b) //1=close, 0=open
+void gripper(bool b) //1=close, 0=open, 2=toggle
 {
-	if (b == 0 && gripperState == 1)
+	if ((b == 0 && gripperState == 1) || (b==2 && gripperState==1))
     {
 
         dxl.torqueEnable(4,0);
@@ -200,7 +223,7 @@ void gripper(bool b) //1=close, 0=open
         dxl.setGoalPosition(5,3200);
 		gripperState = 0;
     }
-	else if (b == 1 && gripperState == 0)
+	else if ((b == 1 && gripperState == 0) || (b == 2 && gripperState == 0))
     {
         dxl.torqueEnable(4,0);
         dxl.torqueEnable(5,0);
@@ -417,11 +440,40 @@ void poseDecoder()
 		utilities.Log("Current axis", currentControlAxis);
 		break;
 	case fist:
-		gripper(1);
+	{
+		if (controlMode == CARTESIAN)
+		{
+			gripper(1);
+		}
+		else
+		{
+			auto currentPosition = servoHelper.ReadPositionRadArray();
+			if (trajectory.goalReachedFlag)
+			{
+				enableJointContinousLoop = false;
+				enableJointWaypointLoop = true;
+				trajectory.setNewGoal(currentPosition, userWaypoint, { 3,3,3 }, 4000);
+			}
+			else
+			{
+				Serial.println("[WARNING] Main: Movement in progress, ignoring command");
+			}
+		}
+
 		pose = none;
 		break;
+	}
 	case fingerSpread:
-		gripper(0);
+		if (controlMode == CARTESIAN)
+		{
+			gripper(0);
+		}
+		else
+		{
+			userWaypoint = servoHelper.ReadPositionRadArray();
+			Serial.println("Saved new waypoint");
+			utilities.LogArray("waypoint", userWaypoint);
+		}
 		pose = none;
 		break;
 	case rest:
@@ -476,12 +528,12 @@ void poseDecoder()
 		switch (currentControlAxis)
 		{
 		case 1:
-			continousSpeeds = { 0.3,0,0 };
+			continousSpeeds = { -0.3,0,0 };
 			continousAccelerations = { -2,0,0 };
 			cartesianContinousSpeeds = {-60, 0,0};
 			break;
 		case 2:
-			continousSpeeds = { 0,0.3,0 };
+			continousSpeeds = { 0,-0.3,0 };
 			continousAccelerations = { 0,-2,0 };
 			cartesianContinousSpeeds = {0,-60,0};
 			break;

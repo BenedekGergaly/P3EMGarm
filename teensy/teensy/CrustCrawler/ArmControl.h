@@ -22,12 +22,12 @@ public:
 		array<double, 3> ddThetaDesired,
 		array<double, 3> thetaFeedback,
 		array<double, 3> dThetaFeedback);
-	array<double, 3> ComputeControlTorque(array<double, 3> thetaDesired, array<double, 3> thetaFeedback, array<double, 3> dThetaFeedback);
-	void resetIntegral();
+	array<double, 3> ComputeControlTorque(array<double, 3> thetaDesired, array<double, 3> thetaFeedback, array<double, 3> dThetaFeedback); //Overload using 0 acceleration and velocity
+	void resetIntegral(); //Resets the integral values
 
-	array<double, 3> Kp, Kv, Ki;
-	double lastTime = 0;
-	array<double, 3> integralValues;
+	array<double, 3> Kp, Kv, Ki; //Individual gains for Kp, Kv and Ki
+	double lastTime = 0; //Used for integral value
+	array<double, 3> integralValues; //The array used to store the previous integral values over time
 private:
 	ArmDynamics dynamics;
 	servo dxl;

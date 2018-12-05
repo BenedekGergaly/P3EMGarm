@@ -4,6 +4,7 @@
 #include "Arduino.h"
 #include "Utilities.h"
 
+// Helper class for intefacing with the servos
 class ServoHelper
 {
 public:

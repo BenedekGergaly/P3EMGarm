@@ -4,13 +4,14 @@
 
 ServoHelper::ServoHelper(servo &dynamixel)
 {
-	this->dynamixel = &dynamixel;
+	this->dynamixel = &dynamixel; //Grabs reference to servo class
 }
 
 ServoHelper::~ServoHelper()
 {
 }
 
+// Reads the position of the servo and converts it to radians
 double ServoHelper::ReadPositionRad(int id) //includes angle compensation
 {
 	int32_t pos;
@@ -20,6 +21,7 @@ double ServoHelper::ReadPositionRad(int id) //includes angle compensation
 	else return angle;
 }
 
+// Reads the position of the servo and converts it to radians pr sec
 double ServoHelper::ReadVelocityRad(int id)
 {
 	int32_t vel;
@@ -28,6 +30,7 @@ double ServoHelper::ReadVelocityRad(int id)
 	return utilities.ConvertVelocitySignal(vel);
 }
 
+// Reads the position of all servos and converts it to radians
 array<double, 3> ServoHelper::ReadPositionRadArray()
 {
 	array<double, 3> output;
@@ -38,6 +41,7 @@ array<double, 3> ServoHelper::ReadPositionRadArray()
 	return output;
 }
 
+// Reads the position of all servos and converts it to radians pr sec
 array<double, 3> ServoHelper::ReadVelocityRadArray()
 {
 	array<double, 3> output;
@@ -66,6 +70,7 @@ void ServoHelper::LEDsOff()
 	}
 }
 
+// Takes torques as an array and sends it to the servos
 void ServoHelper::SendTorquesAllInOne(array<double, 3> torques)
 {
 	int stopFlag = false;
@@ -95,6 +100,7 @@ void ServoHelper::SendTorquesAllInOne(array<double, 3> torques)
 	dynamixel->setGoalPwm(3, pwm3);
 }
 
+// Safety check, making sure the joint velocity is not too high
 bool ServoHelper::CheckOverspeed(double speedLimit)
 {
 	bool triggered = 0;
@@ -115,13 +121,14 @@ bool ServoHelper::CheckOverspeed(double speedLimit)
 	return triggered;
 }
 
+// Stops the movement of the joints
 void ServoHelper::SoftEstop()
 {
 	for (int j = 1; j <= 3; j++)
 	{
-		dynamixel->torqueEnable(j, 0);
-		dynamixel->setOperatingMode(j, 3);
-		dynamixel->torqueEnable(j, 1);
+		dynamixel->torqueEnable(j, 0); // Disable torque
+		dynamixel->setOperatingMode(j, 3); // Sets operating mode to position mode
+		dynamixel->torqueEnable(j, 1); // Enables torque again
 	}
 	Serial.println("[INFO] Control: SoftEstop has been called");
 	LEDsOn();

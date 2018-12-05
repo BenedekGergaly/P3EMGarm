@@ -10,6 +10,7 @@ ArmKinematics::~ArmKinematics()
 
 }
 
+// Calculates the forward dynamics
 Point3D<double> ArmKinematics::ForwardKinematics(double theta1, double theta2, double theta3)
 {
 	double x = -cos(theta1)*(263 * sin(theta2 + theta3) + 224 * sin(theta2));
@@ -18,13 +19,15 @@ Point3D<double> ArmKinematics::ForwardKinematics(double theta1, double theta2, d
 	return Point3D<double>(x, y, z);
 }
 
+
+//Calculates 2 inverse kinematics solutions
 KinematicInverseAngles ArmKinematics::InverseKinematics(Point3D<double> coordinates) const
 {
 	KinematicInverseAngles angles;
 	double theta1 = atan2(-coordinates.getY(), -coordinates.getX());
 	angles.SolutionOne[0] = theta1;
 	angles.SolutionTwo[0] = theta1;
-	auto t14Vector = getT14Pos(theta1, coordinates);
+	auto t14Vector = getT1TPos(theta1, coordinates);
 	double len1 = sqrt(pow((double)t14Vector.getX(), 2) + pow((double)t14Vector.getZ(), 2));
 	double len2 = length2;
 	double len3 = length3;
@@ -51,7 +54,7 @@ KinematicInverseAngles ArmKinematics::InverseKinematics(Point3D<double> coordina
 	return angles;
 }
 
-Point3D<double> ArmKinematics::getT14Pos(double theta, Point3D<double>& coordinates) const
+Point3D<double> ArmKinematics::getT1TPos(double theta, Point3D<double>& coordinates) const
 {
 	double x = coordinates.getX()*cos(theta) + coordinates.getY()*sin(theta);
 	double y = coordinates.getY()*cos(theta) - coordinates.getX()*sin(theta);

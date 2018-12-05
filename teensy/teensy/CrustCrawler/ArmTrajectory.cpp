@@ -12,9 +12,9 @@ ArmTrajectory::~ArmTrajectory()
 //#######################################################################################################################
 void ArmTrajectory::setNewGoal(array<double, 3> currentAngles, array<double, 3> goalAnglesT, array<double, 3> goalAccelerationsT, double desiredTimeT)
 {
-	continousMoveFlag = 0;
-	newGoalFlag = 1;
-	goalReachedFlag = 0;
+	continousMoveFlag = false;
+	newGoalFlag = true;
+	goalReachedFlag = false;
 	goalAngles = goalAnglesT;
 	goalAccelerations = goalAccelerationsT;
 	startAngles = currentAngles;
@@ -60,7 +60,7 @@ void ArmTrajectory::setNewGoal(array<double, 3> currentAngles, array<double, 3> 
 
 array<array<double, 3>, 3> ArmTrajectory::calculate()
 {
-	goalReachedFlag = 0;
+	goalReachedFlag = false;
 	for (int i = 0; i < 3; i++)
 	{
 		output[i][0] += output[i][1] * ((utilities.millisDouble()-tempTime)/1000); //goal angle is increased by speed*time_elapsed
@@ -76,7 +76,7 @@ array<array<double, 3>, 3> ArmTrajectory::calculate()
 		}
 		else if (utilities.millisDouble()/1000-startTime > desiredTime) //goal reached
 		{
-			goalReachedFlag = 1;
+			goalReachedFlag = true;
 			output[i][1] = 0;
 			output[i][2] = 0;
 		}
@@ -89,7 +89,7 @@ array<array<double, 3>, 3> ArmTrajectory::calculate()
 	if (goalReachedFlag && newGoalFlag)
 	{
 		Serial.println("[INFO] Trajectory: Goal reached");
-		newGoalFlag = 0;
+		newGoalFlag = false;
 	}
 	Serial.print("trajectory outputs: ");
 	Serial.print(output[2][0]);
@@ -106,8 +106,8 @@ array<array<double, 3>, 3> ArmTrajectory::calculate()
 
 void ArmTrajectory::startContinousMove(array<double, 3> currentAngles, array<double, 3> goalAccelerationsT, array<double, 3> goalVelocityT)
 {
-	continousMoveFlag = 1;
-	goalReachedFlag = 0;
+	continousMoveFlag = true;
+	goalReachedFlag = false;
 	goalAccelerations = goalAccelerationsT;
 	startAngles = currentAngles;
 	goalSpeeds = goalVelocityT;
@@ -123,7 +123,7 @@ void ArmTrajectory::startContinousMove(array<double, 3> currentAngles, array<dou
 
 void ArmTrajectory::stopContinousMove()
 {
-	continousMoveFlag = 0;
+	continousMoveFlag = false;
 }
 
 array<array<double, 3>, 3> ArmTrajectory::calculateContinousMove()
@@ -138,7 +138,7 @@ array<array<double, 3>, 3> ArmTrajectory::calculateContinousMove()
 		currentRate = utilities.millisDouble() / 1000 - measureRateTempTime;
 		measureRateTempCounter = -1;
 	}
-	else if (continousMoveFlag == 1) //start and middle curve
+	else if (continousMoveFlag == true) //start and middle curve
 	{
 		for (int i = 0; i < 3; i++)
 		{
@@ -161,7 +161,7 @@ array<array<double, 3>, 3> ArmTrajectory::calculateContinousMove()
 		}
 		return output;
 	}
-	else if (continousMoveFlag == 0)//end curve
+	else if (continousMoveFlag == false)//end curve
 	{
 		int stopCheck = 0;
 		for (int i = 0; i < 3; i++)
@@ -181,7 +181,7 @@ array<array<double, 3>, 3> ArmTrajectory::calculateContinousMove()
 		}
 		if (stopCheck == 3)
 		{
-			goalReachedFlag = 1;
+			goalReachedFlag = true;
 			Serial.println("[INFO] Trajectory: All joints stopped");
 		}
 		return output;
@@ -335,8 +335,8 @@ array<array<double, 3>, 3> ArmTrajectory::calculateCartesian()
 
 void ArmTrajectory::startContinousCartesianMove(array<double, 3> cartesianSpeedT)
 {
-	continousMoveFlag = 1;
-	goalReachedFlag = 0;
+	continousMoveFlag = true;
+	goalReachedFlag = false;
 	cartesianSpeed = cartesianSpeedT;
 	startTime = utilities.secondsDouble();
 	measureRateTempCounter = 0;
@@ -354,7 +354,7 @@ void ArmTrajectory::startContinousCartesianMove(array<double, 3> cartesianSpeedT
 
 void ArmTrajectory::stopContinousCartesianMove()
 {
-	continousMoveFlag = 0;
+	continousMoveFlag = false;
 }
 
 array<array<double, 3>, 3> ArmTrajectory::calculateContinousCartesianMove()
@@ -465,22 +465,4 @@ void ArmTrajectory::adjustInverseKinematicAngles(array<double, 3>& solution, arr
 		solution[2] *= -1;
 	}
 }
-
-//double ArmTrajectory::adjustJoint1Angle(double solution, double reference)
-//{
-//	if (reference - solution > 3)
-//	{
-//		return solution + 2 * PI;
-//	}
-//	else if (reference - solution < -3)
-//	{
-//		return solution - 2 * PI;
-//	}
-//	else
-//	{
-//		return solution;
-//	}
-//}
-
-
 

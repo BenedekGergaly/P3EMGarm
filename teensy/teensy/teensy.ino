@@ -11,15 +11,15 @@
 #include "CrustCrawler/Utilities.h"
 #include "CrustCrawler/ServoHelper.h"
 
-constexpr auto rest = 0;
-constexpr auto waveIn = 1;
-constexpr auto waveOut = 2;
-constexpr auto fist = 3;
-constexpr auto fingerSpread = 4;
-constexpr auto doubleTap = 5;
-constexpr auto none = -1;
-constexpr auto position = 3;
-constexpr auto pwm = 16;
+const int rest = 0;
+const int waveIn = 1;
+const int waveOut = 2;
+const int fist = 3;
+const int fingerSpread = 4;
+const int doubleTap = 5;
+const int none = -1;
+const int position = 3;
+const int pwm = 16;
 
 int pose = none; //rest, waveIn, waveOut, fist, fingerSpread, doubleTap
 int currentControlAxis = 3; //1, 2, 3 = x, y, z mode

@@ -369,10 +369,10 @@ void commandDecoder()
 		}
 		case 's': //stop
 			servoHelper.SoftEstop();
-			enableJointWaypointLoop = 0;
-			enableJointContinousLoop = 0;
-			enableCartesianWaypointLoop = 0;
-			enableCartesianContinousLoop = 0;
+			enableJointWaypointLoop = false;
+			enableJointContinousLoop = false;
+			enableCartesianWaypointLoop = false;
+			enableCartesianContinousLoop = false;
 			enableDebug = 0;
 			break;
 		case 'l': //loosen

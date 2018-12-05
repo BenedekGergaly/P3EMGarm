@@ -3,13 +3,8 @@
 // 
 
 #include "ArmDynamics.h"
-void ArmDynamics::addGravity(const double theta[3], double tau[3]) 
-{
-	tau[0] += 0;
-	tau[1] += g * (-sin(theta[1]) * l[1] * m[2] - sin(theta[1]) * lc[1] * m[1] - sin(theta[1] + theta[2]) * lc[2] * m[2]);
-	tau[2] += g * lc[2] * m[2] * -sin(theta[1] + theta[2]);
-}
 
+// Public function to calculate the torque from desired acceleration, position and velocity feedback
 array<double, 3> ArmDynamics::ComputeOutputTorque(array<double, 3> controlAccelerations, array<double, 3> thetaFeedback, array<double, 3> dThetaFeedback)
 {
 	double tau[3] = { 0, 0, 0 };
@@ -19,10 +14,11 @@ array<double, 3> ArmDynamics::ComputeOutputTorque(array<double, 3> controlAccele
     addGravity(thetaFeedback.data(), tau);
 	addFriction(dThetaFeedback.data(), tau);
 
-	array<double, 3> returnArray = { tau[0], tau[1], tau[2]};
+	array<double, 3> returnArray = { tau[0], tau[1], tau[2] };
 	return returnArray;
 }
 
+//Calculates the coriolis component of the dynamics
 void ArmDynamics::getCoriolis(const double theta[3], double B[9]) 
 {
 	B[i_11] = ((-4 * I3[i_12] - 4 * I3[i_21]) * pow(cos(theta[2]), 2) - 4 * sin(theta[2]) * (-pow(lc[2], 2) * m[2] + I3[i_11] - I3[i_22]) * cos(theta[2]) + 4 * m[2] * lc[2] * sin(theta[2]) * l[1] + 2 * I3[i_12] + 2 * I3[i_21] - 2 * I2[i_12] - 2 * I2[i_21]) * pow(cos(theta[1]), 2) + (2 * (2 * pow(lc[2], 2) * m[2] - 2 * I3[i_11] + 2 * I3[i_22]) * pow(cos(theta[2]), 2) + 2 * ((2 * I3[i_12] + 2 * I3[i_21]) * sin(theta[2]) + 2 * m[2] * lc[2] * l[1]) * cos(theta[2]) + 2 * (pow(l[1], 2) - pow(lc[2], 2)) * m[2] + 2 * m[1] * pow(lc[1], 2) + 2 * I2[i_22] + 2 * I3[i_11] - 2 * I3[i_22] - 2 * I2[i_11]) * sin(theta[1]) * cos(theta[1]) + (2 * I3[i_12] + 2 * I3[i_21]) * pow(cos(theta[2]), 2) + 2 * sin(theta[2]) * (-pow(lc[2], 2) * m[2] + I3[i_11] - I3[i_22]) * cos(theta[2]) - 2 * m[2] * lc[2]	* sin(theta[2]) * l[1] - I3[i_12] - I3[i_21] + I2[i_12] + I2[i_21];
@@ -38,6 +34,7 @@ void ArmDynamics::getCoriolis(const double theta[3], double B[9])
 	B[i_33] = 0;
 }
 
+//Calculates the centrifugal component of the dynamics
 void ArmDynamics::getCentrifugal(const double theta[3], double C[9]) 
 {
 	C[i_11] = 0;
@@ -56,6 +53,7 @@ void ArmDynamics::getCentrifugal(const double theta[3], double C[9])
 	C[i_33] = 0;
 }
 
+//Calculates the inertia component of the dynamics
 void ArmDynamics::addInertia(const double theta[3], const double ddTheta[3], double tau[3]) 
 {
 	const double M[9] = {
@@ -78,6 +76,7 @@ void ArmDynamics::addInertia(const double theta[3], const double ddTheta[3], dou
 	tau[2] += M[i_31] * ddTheta[0] + M[i_32] * ddTheta[1] + M[i_33] * ddTheta[2];
 }
 
+//Calculates the velocity component of the dynamics
 void ArmDynamics::addVelocity(const double theta[3], const double dTheta[3], double tau[3]) 
 {
 	double B[9], C[9];
@@ -105,8 +104,19 @@ void ArmDynamics::addVelocity(const double theta[3], const double dTheta[3], dou
 
 }
 
-void ArmDynamics::addFriction(const double dTheta[3], double tau[3]) {
-	for (int i = 0; i < 3; ++i) {
+//Calculates the gravity component of the dynamics
+void ArmDynamics::addGravity(const double theta[3], double tau[3])
+{
+	tau[0] += 0;
+	tau[1] += g * (-sin(theta[1]) * l[1] * m[2] - sin(theta[1]) * lc[1] * m[1] - sin(theta[1] + theta[2]) * lc[2] * m[2]);
+	tau[2] += g * lc[2] * m[2] * -sin(theta[1] + theta[2]);
+}
+
+//Calculates the friction component of the dynamics
+void ArmDynamics::addFriction(const double dTheta[3], double tau[3]) 
+{
+	for (int i = 0; i < 3; ++i) 
+	{
 		if (dTheta[i] != 0)
 		{
 			tau[i] += copysign(0.006, dTheta[i]) + 0.012 * dTheta[i]; //coulomb & viscous friction

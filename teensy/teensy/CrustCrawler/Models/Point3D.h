@@ -8,6 +8,8 @@
 
 using namespace std;
 
+
+//Template class used for representing a 3D point in Cartesian space
 template <typename T>
 class Point3D
 {

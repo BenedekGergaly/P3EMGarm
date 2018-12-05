@@ -9,6 +9,7 @@ Utilities::~Utilities()
 {
 }
 
+// Logs an array into the serial monitor
 void Utilities::LogArray(String text, array<double, 3> data)
 {
 	Serial.print(text);
@@ -20,6 +21,7 @@ void Utilities::LogArray(String text, array<double, 3> data)
 	Serial.println(data[2]);
 }
 
+// Logs to serial
 void Utilities::Log(String text, double data)
 {
 	Serial.print(text);
@@ -76,6 +78,7 @@ double Utilities::ConvertPositionSignal(int16_t signal)
 	return signal * POSITION_UNIT;
 }
 
+//Computes the PWM values to obtain required torque. Calculated from experiments with the robot.
 double Utilities::ComputeOutputPWM(double desiredTorque, ServoType servoType)
 {
 	switch (servoType)

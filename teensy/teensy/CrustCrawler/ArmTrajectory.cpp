@@ -130,8 +130,7 @@ array<array<double, 3>, 3> ArmTrajectory::calculateContinousMove()
 {
 	elapsedTime = utilities.secondsDouble() - lastTime;
 	lastTime = utilities.secondsDouble();
-	if (continousMoveFlag == 1) //start and middle curve
-	else if (continousMoveFlag == true) //start and middle curve
+	if (continousMoveFlag == true) //start and middle curve
 	{
 		for (int i = 0; i < 3; i++)
 		{
@@ -337,6 +336,7 @@ void ArmTrajectory::startContinousCartesianMove(array<double, 3> cartesianSpeedT
 	goalReachedFlag = false;
 	cartesianSpeed = cartesianSpeedT;
 	startTime = utilities.secondsDouble();
+	lastTime = utilities.secondsDouble();
 	measureRateTempCounter = 0;
 	cartesianPhase = 0;
 	cartesianEndCounter = 0;
@@ -358,41 +358,33 @@ void ArmTrajectory::stopContinousCartesianMove()
 array<array<double, 3>, 3> ArmTrajectory::calculateContinousCartesianMove()
 {
 	int interpolatorRelativeRate = 10;
-	if (measureRateTempCounter == 0)
-	{
-		measureRateTempTime = utilities.secondsDouble();
-		measureRateTempCounter++;
-	}
-	else if (measureRateTempCounter == 1)
-	{
-		currentRate = utilities.secondsDouble() - measureRateTempTime;
-		measureRateTempCounter = -1;
-	}
-	else if(continousMoveFlag == true)
+	elapsedTime = utilities.secondsDouble() - lastTime;
+	lastTime = utilities.secondsDouble();
+	if(continousMoveFlag == true)
 	{
 		if (cartesianPhase == 0)
 		{
 			//interpolation
 			cartesianPosition = kinematics.ForwardKinematics(output[0][0], output[1][0], output[2][0]).getArray();
-			utilities.LogArray("cart1", cartesianPosition);
+			//utilities.LogArray("cart1", cartesianPosition);
 			for (int i = 0; i < 3; i++)
 			{
-				cartesianPosition[i] += cartesianSpeed[i] * currentRate * interpolatorRelativeRate;
+				cartesianPosition[i] += cartesianSpeed[i] * elapsedTime * interpolatorRelativeRate;
 			}
-			utilities.LogArray("cart2", cartesianPosition);
+			//utilities.LogArray("cart2", cartesianPosition);
 			goalAngles = kinematics.InverseKinematics(utilities.ArrayToPoint(cartesianPosition)).SolutionOne; //maybe need logic to decide solotion 1 vs 2
-			utilities.LogArray("undajusted 1", goalAngles);
+			//utilities.LogArray("undajusted 1", goalAngles);
 			array<double, 3> goalAngles2 = kinematics.InverseKinematics(utilities.ArrayToPoint(cartesianPosition)).SolutionTwo;
-			utilities.LogArray("unadjusted 2", goalAngles2);
+			//utilities.LogArray("unadjusted 2", goalAngles2);
 			adjustInverseKinematicAngles(goalAngles, {output[0][0], output[1][0], output[2][0] });
-			utilities.LogArray("inv kinematic solution", goalAngles);
+			//utilities.LogArray("inv kinematic solution", goalAngles);
 			//servoHelper->SoftEstop();
 			//utilities.Pause();
 			for (int i = 0; i < 3; i++)
 			{
 				//control.Log("old speed", output[i][1]);
-				double endSpeed = 2 * (goalAngles[i] - output[i][0]) / (currentRate * interpolatorRelativeRate) - output[i][1]; //s=(v0+v1)/2*t solve for v1 --> v1 = (2 s)/t - v0
-				goalAccelerations[i] = (endSpeed - output[i][1]) / (currentRate * interpolatorRelativeRate);
+				double endSpeed = 2 * (goalAngles[i] - output[i][0]) / (elapsedTime * interpolatorRelativeRate) - output[i][1]; //s=(v0+v1)/2*t solve for v1 --> v1 = (2 s)/t - v0
+				goalAccelerations[i] = (endSpeed - output[i][1]) / (elapsedTime * interpolatorRelativeRate);
 				//control.Log("endSpeed", endSpeed);
 			}
 			//control.Pause();
@@ -402,6 +394,10 @@ array<array<double, 3>, 3> ArmTrajectory::calculateContinousCartesianMove()
 		{
 			utilities.Log("[WARNING] Trajectory: At least this joint reached its limit", badJoint);
 			continousMoveFlag = false;
+			for (int i = 0; i < 3; i++)
+			{
+				output[i][0] = servoHelper->ReadPositionRad(i + 1);
+			}
 		}
 		else
 		{
@@ -409,17 +405,17 @@ array<array<double, 3>, 3> ArmTrajectory::calculateContinousCartesianMove()
 			for (int i = 0; i < 3; i++)
 			{
 				output[i][2] = goalAccelerations[i];
-				output[i][1] += goalAccelerations[i] * currentRate;
-				output[i][0] += output[i][1] * currentRate;
+				output[i][1] += goalAccelerations[i] * elapsedTime;
+				output[i][0] += output[i][1] * elapsedTime;
 			}
 		}
 
 		cartesianPhase++;
 		if (cartesianPhase == interpolatorRelativeRate) cartesianPhase = 0;
 
-		utilities.LogArray("output[][] position", kinematics.ForwardKinematics(output[0][0], output[1][0], output[2][0]).getArray());
-		utilities.LogArray("measured position", kinematics.ForwardKinematics(servoHelper->ReadPositionRad(1), servoHelper->ReadPositionRad(2),
-			servoHelper->ReadPositionRad(3)).getArray());
+		//utilities.LogArray("output[][] position", kinematics.ForwardKinematics(output[0][0], output[1][0], output[2][0]).getArray());
+		//utilities.LogArray("measured position", kinematics.ForwardKinematics(servoHelper->ReadPositionRad(1), servoHelper->ReadPositionRad(2),
+			//servoHelper->ReadPositionRad(3)).getArray());
 
 		return output;
 	}
@@ -433,14 +429,14 @@ array<array<double, 3>, 3> ArmTrajectory::calculateContinousCartesianMove()
 			output[i][1] = 0;
 		}
 		cartesianEndCounter++;
-		if (cartesianEndCounter > endWaitTime / currentRate)
+		if (cartesianEndCounter > endWaitTime / elapsedTime)
 		{
 			goalReachedFlag = true;
 		}
 	}
-	utilities.LogArray("output[][] position", kinematics.ForwardKinematics(output[0][0], output[1][0], output[2][0]).getArray());
-	utilities.LogArray("measured position", kinematics.ForwardKinematics(servoHelper->ReadPositionRad(1), servoHelper->ReadPositionRad(2),
-		servoHelper->ReadPositionRad(3)).getArray());
+	//utilities.LogArray("output[][] position", kinematics.ForwardKinematics(output[0][0], output[1][0], output[2][0]).getArray());
+	//utilities.LogArray("measured position", kinematics.ForwardKinematics(servoHelper->ReadPositionRad(1), servoHelper->ReadPositionRad(2),
+	//	servoHelper->ReadPositionRad(3)).getArray());
 	return output;
 }
 //#######################################################################################################################
@@ -466,7 +462,7 @@ void ArmTrajectory::adjustInverseKinematicAngles(array<double, 3>& solution, arr
 
 void ArmTrajectory::printDebug()
 {
-	utilities.Log("currentrate", currentRate);
+	utilities.Log("elapsedTime", elapsedTime);
 	utilities.Log("contMovFlag", continousMoveFlag);
 	utilities.Log("goalReachedFlag", goalReachedFlag);
 	utilities.LogArray("TgoalAcc", goalAccelerations);

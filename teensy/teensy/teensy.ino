@@ -110,18 +110,6 @@ void applyJointContinousMove()
 	//utilities.LogArray("accelerations", desiredAccelerations);
 	servoHelper.SendTorquesAllInOne(torques);
 	//Serial.println("=================");
-	if (servoHelper.CheckOverspeed(1.0))
-	{
-		servoHelper.LEDsOn();
-		delay(20000);
-		utilities.LogArray("Current position", feedbackPosition);
-		utilities.LogArray("Current velocity", feedbackVelocity);
-		utilities.LogArray("Torques", torques);
-		utilities.LogArray("desiredAngles", desiredAngles);
-		utilities.LogArray("desuredSpeeds", desiredSpeeds);
-		utilities.LogArray("desiredAccelerations", desiredAccelerations);
-		trajectory.printDebug();
-	}
 }
 
 void applyCartesianWaypointMove()
@@ -152,8 +140,8 @@ void applyCartesianContinousMove()
 {
 	array<double, 3> feedbackPosition = servoHelper.ReadPositionRadArray();
 	array<double, 3> feedbackVelocity = servoHelper.ReadVelocityRadArray();
-	utilities.LogArray("Current position", feedbackPosition);
-	utilities.LogArray("Current velocity", feedbackVelocity);
+	//utilities.LogArray("Current position", feedbackPosition);
+	//utilities.LogArray("Current velocity", feedbackVelocity);
 
 	array<array<double, 3>, 3> inputs = trajectory.calculateContinousCartesianMove();
 	array<double, 3> desiredAngles, desiredSpeeds, desiredAccelerations;
@@ -169,7 +157,7 @@ void applyCartesianContinousMove()
 	//control.LogArray("Accelerations", desiredAccelerations);
 	//control.LogArray("Torques", torques);
 	servoHelper.SendTorquesAllInOne(torques);
-	Serial.println("=================");
+	//Serial.println("=================");
 }
 
 void debug()
@@ -210,7 +198,7 @@ void printEEPROMvalues()
 
 void gripper(bool b) //1=close, 0=open, 2=toggle
 {
-	if ((b == 0 && gripperState == 1) || (b==2 && gripperState==1))
+	if (b == 0 && gripperState == 1)
     {
 
         dxl.torqueEnable(4,0);
@@ -223,7 +211,7 @@ void gripper(bool b) //1=close, 0=open, 2=toggle
         dxl.setGoalPosition(5,3200);
 		gripperState = 0;
     }
-	else if ((b == 1 && gripperState == 0) || (b == 2 && gripperState == 0))
+	else if (b == 1 && gripperState == 0)
     {
         dxl.torqueEnable(4,0);
         dxl.torqueEnable(5,0);
@@ -417,6 +405,23 @@ void commandDecoder()
 				debugPhase = 1;
 			}
 			break;
+		case 'z': //update control mode joint/cartesian CAN ONLY BE USED AFTER CONTROL LOOP IS RUNNING
+			if (Serial.read() == 'c')
+			{
+				controlMode = CARTESIAN;
+				enableJointContinousLoop = false;
+				enableCartesianContinousLoop = true;
+				currentControlAxis = 1;
+				Serial.println("Control is now CARTESIAN");
+			}
+			else
+			{
+				controlMode = JOINT;
+				enableCartesianContinousLoop = false;
+				enableJointContinousLoop = true;
+				currentControlAxis = 2;
+				Serial.println("Control is now JOINT");
+			}
 		case ',':
 			Serial.read();
 			break;
@@ -478,38 +483,38 @@ void poseDecoder()
 		break;
 	case rest:
 		trajectory.stopContinousMove();
+		trajectory.stopContinousCartesianMove();
 		break;
 	case waveIn:
 		if (enableFlag == false)
 		{
 			enableTorqueForAll();
+			enableJointContinousLoop = true;
 			enableFlag = true;
 		}
-		//enableCartesianContinousLoop = true;
-		enableJointContinousLoop = true;
 		pose = none;
 		switch (currentControlAxis)
 		{
 		case 1:
 			continousSpeeds = { 0.3,0,0 };
 			continousAccelerations = { 2,0,0 };
-			cartesianContinousSpeeds = { 60, 0, 0 };
+			cartesianContinousSpeeds = { 30, 0, 0 };
 			break;
 		case 2:
 			continousSpeeds = { 0,0.3,0 };
 			continousAccelerations = { 0,2,0 };
-			cartesianContinousSpeeds = {0,60,0};
+			cartesianContinousSpeeds = {0,30,0};
 			break;
 		case 3:
 			continousSpeeds = { 0,0,0.3 };
 			continousAccelerations = { 0,0,2 };
-			cartesianContinousSpeeds = {0,0,60};
+			cartesianContinousSpeeds = {0,0,30};
 			break;
 		}
 		if (trajectory.goalReachedFlag)
 		{
 			trajectory.startContinousMove(servoHelper.ReadPositionRadArray(), continousAccelerations, continousSpeeds);
-			//trajectory.startContinousCartesianMove(cartesianContinousSpeeds);
+			trajectory.startContinousCartesianMove(cartesianContinousSpeeds);
 		}
 		else
 		{
@@ -520,33 +525,32 @@ void poseDecoder()
 		if (enableFlag == false)
 		{
 			enableTorqueForAll();
+			enableJointContinousLoop = true;
 			enableFlag = true;
 		}
-		//enableCartesianContinousLoop = true;
 		pose = none;
-		enableJointContinousLoop = true;
 		switch (currentControlAxis)
 		{
 		case 1:
 			continousSpeeds = { -0.3,0,0 };
 			continousAccelerations = { -2,0,0 };
-			cartesianContinousSpeeds = {-60, 0,0};
+			cartesianContinousSpeeds = {-30, 0,0};
 			break;
 		case 2:
 			continousSpeeds = { 0,-0.3,0 };
 			continousAccelerations = { 0,-2,0 };
-			cartesianContinousSpeeds = {0,-60,0};
+			cartesianContinousSpeeds = {0,-30,0};
 			break;
 		case 3:
 			continousSpeeds = { 0,0,-0.3 };
 			continousAccelerations = { 0,0,-2 };
-			cartesianContinousSpeeds = {0,0,-60};
+			cartesianContinousSpeeds = {0,0,-30};
 			break;
 		}
 		if (trajectory.goalReachedFlag)
 		{
 			trajectory.startContinousMove(servoHelper.ReadPositionRadArray(), continousAccelerations, continousSpeeds);
-			//trajectory.startContinousCartesianMove(cartesianContinousSpeeds);
+			trajectory.startContinousCartesianMove(cartesianContinousSpeeds);
 		}
 		else
 		{

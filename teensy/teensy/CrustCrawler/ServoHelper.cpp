@@ -26,7 +26,6 @@ double ServoHelper::ReadVelocityRad(int id)
 {
 	int32_t vel;
 	dynamixel->readVelocity(id, vel);
-	if(vel)
 	return utilities.ConvertVelocitySignal(vel);
 }
 

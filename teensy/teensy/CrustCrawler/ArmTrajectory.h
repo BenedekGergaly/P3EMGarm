@@ -63,8 +63,8 @@ private:
 	int cartesianPhase = 0;
 	int cartesianEndCounter = 0;
 
-	const double joint1Min = -1;
-	const double joint1Max = 5;
+	const double joint1Min = -3;
+	const double joint1Max = 7;
 	const double joint2Min = -2;
 	const double joint2Max = 2;
 	const double joint3Min = -2;

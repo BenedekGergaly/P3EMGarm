@@ -13,8 +13,10 @@ SerialPort::SerialPort(char *portName)
 		OPEN_EXISTING,
 		FILE_ATTRIBUTE_NORMAL,
 		NULL);
-	if (this->handler == INVALID_HANDLE_VALUE) {
-		if (GetLastError() == ERROR_FILE_NOT_FOUND) {
+	if (this->handler == INVALID_HANDLE_VALUE)
+	{
+		if (GetLastError() == ERROR_FILE_NOT_FOUND)
+		{
 			printf("ERROR: %s not available\n", portName);
 		}
 		else
@@ -22,13 +24,16 @@ SerialPort::SerialPort(char *portName)
 			printf("ERROR: Unknown serial error\n");
 		}
 	}
-	else {
+	else
+	{
 		DCB dcbSerialParameters = { 0 };
 
-		if (!GetCommState(this->handler, &dcbSerialParameters)) {
+		if (!GetCommState(this->handler, &dcbSerialParameters))
+		{
 			printf("failed to get current serial parameters\n");
 		}
-		else {
+		else
+		{
 			dcbSerialParameters.BaudRate = CBR_9600;
 			dcbSerialParameters.ByteSize = 8;
 			dcbSerialParameters.StopBits = ONESTOPBIT;
@@ -39,7 +44,8 @@ SerialPort::SerialPort(char *portName)
 			{
 				printf("ALERT: could not set Serial port parameters\n");
 			}
-			else {
+			else
+			{
 				this->connected = true;
 				PurgeComm(this->handler, PURGE_RXCLEAR | PURGE_TXCLEAR);
 				Sleep(ARDUINO_WAIT_TIME);
@@ -50,13 +56,14 @@ SerialPort::SerialPort(char *portName)
 
 SerialPort::~SerialPort()
 {
-	if (this->connected) {
+	if (this->connected)
+	{
 		this->connected = false;
 		CloseHandle(this->handler);
 	}
 }
 
-char* stringConverter(std::string input)
+char* stringConverter(std::string input) //casting char* to const char* causes the terminator to disappear (or something similar)
 {
 	const char* temp = input.c_str();
 	char* out = strdup(temp);
@@ -70,8 +77,10 @@ int SerialPort::readSerialPort(char *buffer, unsigned int buf_size)
 
 	ClearCommError(this->handler, &this->errors, &this->status);
 
-	if (this->status.cbInQue > 0) {
-		if (this->status.cbInQue > buf_size) {
+	if (this->status.cbInQue > 0)
+	{
+		if (this->status.cbInQue > buf_size)
+		{
 			toRead = buf_size;
 		}
 		else toRead = this->status.cbInQue;
@@ -87,7 +96,8 @@ bool SerialPort::writeSerialPort(std::string input)
 {
 	DWORD bytesSend;
 	char* buffer = stringConverter(input);
-	if (!WriteFile(this->handler, (void*)buffer, 8, &bytesSend, 0)) {
+	if (!WriteFile(this->handler, (void*)buffer, 8, &bytesSend, 0))
+	{
 		ClearCommError(this->handler, &this->errors, &this->status);
 		return false;
 	}

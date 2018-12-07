@@ -42,7 +42,6 @@ public:
 	void adjustInverseKinematicAngles(array<double, 3> &solution, array<double, 3> reference); //makes sure angles over 180 don't become the opposite sign during inverse kinematics
 
 	double time = 2500; //debug stuff
-	void printDebug();
 
 
 private:

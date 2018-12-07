@@ -11,24 +11,24 @@
 #include "CrustCrawler/Utilities.h"
 #include "CrustCrawler/ServoHelper.h"
 
-const int rest = 0;
-const int waveIn = 1;
-const int waveOut = 2;
-const int fist = 3;
-const int fingerSpread = 4;
-const int doubleTap = 5;
-const int none = -1;
-const int position = 3;
-const int pwm = 16;
+#define REST 0
+#define WAVE_IN 1
+#define WAVE_OUT 2
+#define FIST 3
+#define FINGER_SPREAD 4
+#define DOUBLE_TAP 5
+#define POSE_NONE -1
+#define MODE_POSITION 3
+#define MODE_PWM 16
 #define CARTESIAN 0
 #define JOINT 1
 
-int pose = none; //rest, waveIn, waveOut, fist, fingerSpread, doubleTap
-int currentControlAxis = 3; //1, 2, 3 = x, y, z mode
-bool gripperState = 0;
-int cycleFrequency;
-int cycleTime;
-unsigned long timer = 0;
+int pose = POSE_NONE; //rest, waveIn, waveOut, fist, fingerSpread, doubleTap
+int currentControlAxis = 3; //1, 2, 3 = x, y, z mode or respective joints is joint mode
+bool gripperState = 0; //gripper open/closed
+int cycleFrequency; //main loop freq
+int cycleTime; //main loop cycle time
+unsigned long timer = 0; //main loop timer
 bool enableJointWaypointLoop = false;
 bool enableJointContinousLoop = false;
 bool enableCartesianWaypointLoop = false;
@@ -58,14 +58,14 @@ ServoHelper servoHelper = ServoHelper(dxl);
 
 using namespace std;
 
-void applyJointWaypointMove()
+void applyJointWaypointMove() //called by main loop when joint waypoint is running
 {
 	array<double, 3> feedbackPosition = servoHelper.ReadPositionRadArray();
 	array<double, 3> feedbackVelocity = servoHelper.ReadVelocityRadArray();
 
-	array<array<double, 3>, 3> inputs = trajectory.calculate();
+	array<array<double, 3>, 3> inputs = trajectory.calculate(); //calculates current cycle of trajectory, note: all parameters are fed in prior to trajectory start
 	array<double, 3> desiredAngles, desiredSpeeds, desiredAccelerations;
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < 3; i++) //transfer trajectory outputs to control sytem readable arrays
 	{
 		desiredAngles[i] = inputs[i][0];
 		desiredSpeeds[i] = inputs[i][1];
@@ -81,14 +81,14 @@ void applyJointWaypointMove()
 	//utilities.LogArray("Torques", torques);
 	servoHelper.SendTorquesAllInOne(torques);
 	//Serial.println("=================");
-	if (trajectory.goalReachedFlag)
+	if (trajectory.goalReachedFlag) //when waypoint is reached switch back to continous joint mode
 	{
 		enableJointWaypointLoop = false;
 		enableJointContinousLoop = true;
 	}
 }
 
-void applyJointContinousMove()
+void applyJointContinousMove() //see applyJointWaypointMove() for explanation
 {
 	array<double, 3> feedbackPosition = servoHelper.ReadPositionRadArray();
 	array<double, 3> feedbackVelocity = servoHelper.ReadVelocityRadArray();
@@ -112,7 +112,7 @@ void applyJointContinousMove()
 	//Serial.println("=================");
 }
 
-void applyCartesianWaypointMove()
+void applyCartesianWaypointMove()//see applyJointWaypointMove() for explanation			Not used in final product
 {
 	array<double, 3> feedbackPosition = servoHelper.ReadPositionRadArray();
 	array<double, 3> feedbackVelocity = servoHelper.ReadVelocityRadArray();
@@ -136,7 +136,7 @@ void applyCartesianWaypointMove()
 	//Serial.println("=================");
 }
 
-void applyCartesianContinousMove()
+void applyCartesianContinousMove()//see applyJointWaypointMove() for explanation
 {
 	array<double, 3> feedbackPosition = servoHelper.ReadPositionRadArray();
 	array<double, 3> feedbackVelocity = servoHelper.ReadVelocityRadArray();
@@ -160,34 +160,34 @@ void applyCartesianContinousMove()
 	//Serial.println("=================");
 }
 
-void debug()
-{
-	array<double, 3> feedbackPosition = servoHelper.ReadPositionRadArray();
-	array<double, 3> feedbackVelocity = servoHelper.ReadVelocityRadArray();
-	utilities.LogArray("Current position", feedbackPosition);
-	utilities.LogArray("Current velocity", feedbackVelocity);
-	array<double, 3> desiredSpeeds = { 0,0,0 };
-	array<double, 3> desiredAngles = { 0,0,0 };
-	if (debugPhase == 1)
-	{
-		desiredAngles = { 0,0,0 };
-	}
-	else
-	{
-		desiredAngles = { 0,1.57, -1.57 };
-	}
+//void debug()
+//{
+//	array<double, 3> feedbackPosition = servoHelper.ReadPositionRadArray();
+//	array<double, 3> feedbackVelocity = servoHelper.ReadVelocityRadArray();
+//	utilities.LogArray("Current position", feedbackPosition);
+//	utilities.LogArray("Current velocity", feedbackVelocity);
+//	array<double, 3> desiredSpeeds = { 0,0,0 };
+//	array<double, 3> desiredAngles = { 0,0,0 };
+//	if (debugPhase == 1)
+//	{
+//		desiredAngles = { 0,0,0 };
+//	}
+//	else
+//	{
+//		desiredAngles = { 0,1.57, -1.57 };
+//	}
+//
+//	array<double, 3> desiredAccelerations = { 0,0,0 };
+//	array<double, 3> torques = control.ComputeControlTorque(desiredAngles, desiredSpeeds, desiredAccelerations, feedbackPosition, feedbackVelocity);
+//	utilities.LogArray("Angles", desiredAngles);
+//	utilities.LogArray("Speeds", desiredSpeeds);
+//	utilities.LogArray("Accelerations", desiredAccelerations);
+//	utilities.LogArray("Torques", torques);
+//	servoHelper.SendTorquesAllInOne(torques);
+//	Serial.println("=================");
+//}
 
-	array<double, 3> desiredAccelerations = { 0,0,0 };
-	array<double, 3> torques = control.ComputeControlTorque(desiredAngles, desiredSpeeds, desiredAccelerations, feedbackPosition, feedbackVelocity);
-	utilities.LogArray("Angles", desiredAngles);
-	utilities.LogArray("Speeds", desiredSpeeds);
-	utilities.LogArray("Accelerations", desiredAccelerations);
-	utilities.LogArray("Torques", torques);
-	servoHelper.SendTorquesAllInOne(torques);
-	Serial.println("=================");
-}
-
-void printEEPROMvalues()
+void printEEPROMvalues() // prints values stored in EEPROM (prints the local copies)
 {
     Serial.print("Frequency: ");
     Serial.println(cycleFrequency);
@@ -196,15 +196,15 @@ void printEEPROMvalues()
 	utilities.LogArray("Ki", control.Ki);
 }
 
-void gripper(bool b) //1=close, 0=open, 2=toggle
+void gripper(bool b) //1=close, 0=open
 {
 	if (b == 0 && gripperState == 1)
     {
 
         dxl.torqueEnable(4,0);
         dxl.torqueEnable(5,0);
-        dxl.setOperatingMode(4,position);
-        dxl.setOperatingMode(5,position);
+        dxl.setOperatingMode(4,MODE_POSITION);
+        dxl.setOperatingMode(5,MODE_POSITION);
         dxl.torqueEnable(4,1);
         dxl.torqueEnable(5,1);
         dxl.setGoalPosition(4,2600);
@@ -215,8 +215,8 @@ void gripper(bool b) //1=close, 0=open, 2=toggle
     {
         dxl.torqueEnable(4,0);
         dxl.torqueEnable(5,0);
-        dxl.setOperatingMode(4,pwm);
-        dxl.setOperatingMode(5,pwm);
+        dxl.setOperatingMode(4,MODE_PWM);
+        dxl.setOperatingMode(5,MODE_PWM);
         dxl.torqueEnable(4,1);
         dxl.torqueEnable(5,1);
 		dxl.setGoalPwm(4, -150);
@@ -225,14 +225,14 @@ void gripper(bool b) //1=close, 0=open, 2=toggle
     }
 }
 
-void enableTorqueForAll()
+void enableTorqueForAll() //puts servos in pwm mode and enables torque
 {
 	dxl.torqueEnable(1, 0);
 	dxl.torqueEnable(2, 0);
 	dxl.torqueEnable(3, 0);
-	dxl.setOperatingMode(1, pwm);
-	dxl.setOperatingMode(2, pwm);
-	dxl.setOperatingMode(3, pwm);
+	dxl.setOperatingMode(1, MODE_PWM);
+	dxl.setOperatingMode(2, MODE_PWM);
+	dxl.setOperatingMode(3, MODE_PWM);
 	dxl.torqueEnable(1, 1);
 	dxl.torqueEnable(2, 1);
 	dxl.torqueEnable(3, 1);
@@ -240,15 +240,34 @@ void enableTorqueForAll()
 	servoHelper.LEDsOff();
 }
 
-void commandDecoder()
+void commandDecoder() //decodes commands incoming via serial
 {
 	if (Serial.available() > 0)
 	{
 		switch (Serial.read())
 		{
-		case 'a': //pose input
+		case 'a': //pose input from myoband
 			pose = Serial.parseInt();
 			break;
+		case 'z': //update control mode joint/cartesian CAN ONLY BE USED AFTER CONTROL LOOP IS RUNNING
+			if (Serial.read() == 'c')
+			{
+				controlMode = CARTESIAN;
+				enableJointContinousLoop = false;
+				enableCartesianContinousLoop = true;
+				currentControlAxis = 1;
+				Serial.println("Control is now CARTESIAN");
+			}
+			else
+			{
+				controlMode = JOINT;
+				enableCartesianContinousLoop = false;
+				enableJointContinousLoop = true;
+				currentControlAxis = 2;
+				Serial.println("Control is now JOINT");
+			}
+			break;
+		//misc. debug commands below
 		case 'r': //retrieve EEPROM values
 			printEEPROMvalues();
 			break;
@@ -303,7 +322,7 @@ void commandDecoder()
 		case 'b': //grip 0=open 1=close
 			gripper(Serial.parseInt());
 			break;
-		case 'n': //update Kp
+		case 'n': //update Kp eg: n2 56
 		{
 			int joint = Serial.parseInt()-1;
 			Serial.read();
@@ -314,7 +333,7 @@ void commandDecoder()
 			control.Kp[joint] = value;
 			break;
 		}
-		case 'm': //update Kv
+		case 'm': //update Kv eg: m2 56
 		{
 			int joint = Serial.parseInt() - 1;
 			Serial.read();
@@ -325,7 +344,7 @@ void commandDecoder()
 			control.Kv[joint] = value;
 			break;
 		}
-		case 'c': //update Ki
+		case 'c': //update Ki eg: c2 56
 		{
 			int joint = Serial.parseInt() - 1;
 			Serial.read();
@@ -359,9 +378,9 @@ void commandDecoder()
 			dxl.torqueEnable(1, 0);
 			dxl.torqueEnable(2, 0);
 			dxl.torqueEnable(3, 0);
-			dxl.setOperatingMode(1, pwm);
-			dxl.setOperatingMode(2, pwm);
-			dxl.setOperatingMode(3, pwm);
+			dxl.setOperatingMode(1, MODE_PWM);
+			dxl.setOperatingMode(2, MODE_PWM);
+			dxl.setOperatingMode(3, MODE_PWM);
 			array<double, 3> joint = servoHelper.ReadPositionRadArray();
 			utilities.LogArray("joints", joint);
 			array<double, 3> cartPos = kinematics.ForwardKinematics(servoHelper.ReadPositionRad(1), servoHelper.ReadPositionRad(2),
@@ -392,7 +411,7 @@ void commandDecoder()
 			dxl.torqueEnable(3, 0);
 			servoHelper.LEDsOff();
 			break;
-		case 'q':
+		case 'q': //debug
 			enableDebug = true;
 			enableTorqueForAll();
 			control.integralValues = { 0,0,0 };
@@ -405,23 +424,6 @@ void commandDecoder()
 				debugPhase = 1;
 			}
 			break;
-		case 'z': //update control mode joint/cartesian CAN ONLY BE USED AFTER CONTROL LOOP IS RUNNING
-			if (Serial.read() == 'c')
-			{
-				controlMode = CARTESIAN;
-				enableJointContinousLoop = false;
-				enableCartesianContinousLoop = true;
-				currentControlAxis = 1;
-				Serial.println("Control is now CARTESIAN");
-			}
-			else
-			{
-				controlMode = JOINT;
-				enableCartesianContinousLoop = false;
-				enableJointContinousLoop = true;
-				currentControlAxis = 2;
-				Serial.println("Control is now JOINT");
-			}
 		case ',':
 			Serial.read();
 			break;
@@ -438,13 +440,13 @@ void poseDecoder()
 	static bool enableFlag = false;
 	switch (pose)
 	{
-	case doubleTap:
+	case DOUBLE_TAP: //advance current control axis/joint
 		currentControlAxis += 1;
 		if (currentControlAxis == 4) currentControlAxis = 1;
-		pose = none;
+		pose = POSE_NONE;
 		utilities.Log("Current axis", currentControlAxis);
 		break;
-	case fist:
+	case FIST://close gripper in cart mode or goes to saved waypoint in joint mode
 	{
 		if (controlMode == CARTESIAN)
 		{
@@ -465,10 +467,10 @@ void poseDecoder()
 			}
 		}
 
-		pose = none;
+		pose = POSE_NONE;
 		break;
 	}
-	case fingerSpread:
+	case FINGER_SPREAD: //opens gripper in cart mode saves current position as waypoint in joint mode
 		if (controlMode == CARTESIAN)
 		{
 			gripper(0);
@@ -479,20 +481,20 @@ void poseDecoder()
 			Serial.println("Saved new waypoint");
 			utilities.LogArray("waypoint", userWaypoint);
 		}
-		pose = none;
+		pose = POSE_NONE;
 		break;
-	case rest:
+	case REST: //stops movement
 		trajectory.stopContinousMove();
 		trajectory.stopContinousCartesianMove();
 		break;
-	case waveIn:
-		if (enableFlag == false)
+	case WAVE_IN: //moves in the positive direction in the current mode (joint/cart)
+		if (enableFlag == false) //enables torque on first run
 		{
 			enableTorqueForAll();
 			enableJointContinousLoop = true;
 			enableFlag = true;
 		}
-		pose = none;
+		pose = POSE_NONE;
 		switch (currentControlAxis)
 		{
 		case 1:
@@ -521,14 +523,14 @@ void poseDecoder()
 			Serial.println("[WARNING] Main: Movement in progress, ignoring command");
 		}
 		break;
-	case waveOut:
-		if (enableFlag == false)
+	case WAVE_OUT: //moves in the negative direction in the current mode (joint/cart)
+		if (enableFlag == false)//enables torque on first run
 		{
 			enableTorqueForAll();
 			enableJointContinousLoop = true;
 			enableFlag = true;
 		}
-		pose = none;
+		pose = POSE_NONE;
 		switch (currentControlAxis)
 		{
 		case 1:
@@ -562,7 +564,7 @@ void poseDecoder()
 	}
 }
 
-void waypointIDdecoder()
+void waypointIDdecoder() //not used in final product
 {
 	switch (currentWaypointID)
 	{
@@ -590,14 +592,14 @@ void waypointIDdecoder()
 //##############################################################################################################################################################
 void setup()
 {    
-    Serial.begin(115200);
+    Serial.begin(115200); //USB serial
     Serial.setTimeout(100);
 
-    Serial1.begin(3000000);
+    Serial1.begin(3000000); //servo serial
     Serial1.transmitterEnable(2);
 
-    EEPROM.get(100,cycleFrequency);
-    cycleTime = 1000000/cycleFrequency; //in microsec
+    EEPROM.get(100,cycleFrequency); //read from EEPROM
+    cycleTime = 1000000/cycleFrequency; //in microsec (converts cycleFreq to cycle time)
 	for (int i = 0; i < 3; i++)
 	{
 		EEPROM.get(200 + i * 10, control.Kp[i]);
@@ -613,22 +615,23 @@ void setup()
             Serial.println(i+1);
         }
     }
-    dxl.setOperatingMode(4, pwm);
-    dxl.setOperatingMode(5, pwm);
+    dxl.setOperatingMode(4, MODE_PWM); //gripper init
+    dxl.setOperatingMode(5, MODE_PWM);
     dxl.torqueEnable(4, 1);
     dxl.torqueEnable(5, 1);
-	servoHelper.SoftEstop();
+	servoHelper.SoftEstop(); //lock position
 	enableCartesianContinousLoop = 0;
 	enableCartesianWaypointLoop = 0;
 	enableDebug = 0;
 	enableJointContinousLoop = 0;
 	enableJointWaypointLoop = 0;
-	trajectory.goalReachedFlag = true;
+	trajectory.goalReachedFlag = true; //later checks won't allow setting new goal if this is false
 
 	Serial.println("INITIALIZED");
 }
 
 //##############################################################################################################################################################
+//MAIN LOOP
 void loop() 
 {
 	commandDecoder(); //decodes incoming serial commands
@@ -636,7 +639,7 @@ void loop()
 	
     if(micros()-timer > cycleTime)
     {
-        float rateError = micros()-timer-cycleTime;
+        float rateError = micros()-timer-cycleTime; //cycletime error checking
         unsigned int actualFrequency = 1000000/(micros()-timer);
         if(rateError > cycleTime * 0.1)
         {
@@ -650,7 +653,7 @@ void loop()
 		{
 			waypointIDdecoder(); //cycles between waypoints
 		}
-		if (enableJointWaypointLoop && trajectory.goalReachedFlag == 0)
+		if (enableJointWaypointLoop && trajectory.goalReachedFlag == false)
 		{
 			applyJointWaypointMove();
 		}
@@ -669,6 +672,6 @@ void loop()
 			applyCartesianContinousMove();
 		}
 
-		if (enableDebug) debug();
+		//if (enableDebug) debug();
     }
 }

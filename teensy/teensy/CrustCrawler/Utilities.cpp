@@ -29,6 +29,7 @@ void Utilities::Log(String text, double data)
 	Serial.println(data);
 }
 
+//halts program, be sure to call softEstop before or it might fall/smash
 void Utilities::Pause()
 {
 	bool f = 1;
@@ -38,7 +39,7 @@ void Utilities::Pause()
 		while (!Serial.available());
 		if (Serial.peek() == 'x')
 		{
-			WRITE_RESTART(0x5FA0004);
+			WRITE_RESTART(0x5FA0004); //sets reset bit on teensy, usb reconnect required afterwards
 		}
 		else if (Serial.peek() == 'r')
 		{
@@ -66,7 +67,7 @@ Point3D<double> Utilities::ArrayToPoint(array<double, 3> a)
 	return Point3D<double>(a[0], a[1], a[2]);
 }
 
-//Returns radians pr. sec
+//Returns radians per sec
 double Utilities::ConvertVelocitySignal(int16_t signal)
 {
 	return signal * VELOCITY_UNIT;
@@ -104,13 +105,4 @@ double Utilities::ComputeOutputPWM(double desiredTorque, ServoType servoType)
 		default:
 			return 0.0;
 	}
-}
-
-bool Utilities::compareArraysMaxDifference(array<double, 3> array1, array<double, 3> array2, double maxDifference)
-{
-	for (int i = 0; i < 3; i++)
-	{
-		if (abs(array1[i] - array2[i]) > maxDifference) return 1;
-	}
-	return 0;
 }

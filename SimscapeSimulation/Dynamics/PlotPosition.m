@@ -1,8 +1,11 @@
 figure; 
-hold on; 
 grid on; 
-plot(p1);
-plot(p2);
-plot(p3);
-legend("Joint 1", "Joint 2", "Joint 3");
+hold on; 
+plot(p1, 'LineWidth', 2); 
+plot(p2, 'LineWidth', 2); 
+plot(p3, 'LineWidth', 2); 
+legend("Joint 1", "Joint 2", "Joint 3", 'FontSize', 20);
+set(gca, 'FontSize', 14);
+xlabel('Time [s]');
+ylabel('Joint angle [rad]');
 hold off;

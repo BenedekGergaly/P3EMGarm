@@ -204,7 +204,7 @@ void ArmTrajectory::setNewCartesianGoal(array<double, 3> goalPositionT, double d
 			cartesianPosition[j] += cartesianSpeed[i];
 		}
 		array<double, 3> solution = kinematics.InverseKinematics(utilities.ArrayToPoint(cartesianPosition)).SolutionOne;
-		trajectory.adjustInverseKinematicAngles(solution, angles);
+		adjustInverseKinematicAngles(solution, angles);
 		for (int j = 0; j < 3; j++)
 		{
 			if (isnan(solution[j])) //check if position is unreachable
@@ -265,7 +265,7 @@ array<array<double, 3>, 3> ArmTrajectory::calculateCartesian()
 				cartesianPosition[i] += cartesianSpeed[i] * currentRate * interpolatorRelativeRate; //increase goal position with goal speed*time since last interpolation
 			}
 			goalAngles = kinematics.InverseKinematics(utilities.ArrayToPoint(cartesianPosition)).SolutionOne; //elbow up
-			trajectory.adjustInverseKinematicAngles(goalAngles, { output[0][0], output[1][0], output[2][0] });
+			adjustInverseKinematicAngles(goalAngles, { output[0][0], output[1][0], output[2][0] });
 			//utilities.LogArray("kinematic solution", goalAngles);
 			for (int i = 0; i < 3; i++) //calculates a constant acceleration move from the current angles and speeds and the duration of the move
 			{
